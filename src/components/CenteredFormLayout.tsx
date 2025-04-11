@@ -1,4 +1,3 @@
-// src/components/CenteredFormLayout.tsx
 import React from "react";
 import { Box, Typography } from "@mui/material";
 
@@ -22,6 +21,7 @@ const CenteredFormLayout: React.FC<CenteredFormLayoutProps> = ({
         justifyContent: "center",
         alignItems: "center",
         backgroundColor: "#f5f5f5",
+        overflow: "auto", // Allow scrolling if content exceeds viewport height
       }}
     >
       <Box
@@ -33,6 +33,8 @@ const CenteredFormLayout: React.FC<CenteredFormLayoutProps> = ({
           borderRadius: 2,
           backgroundColor: "#e3f2fd",
           textAlign: "center",
+          maxHeight: "90vh", // Limit the height to 90% of the viewport
+          overflowY: "auto", // Allow vertical scrolling within the box
         }}
       >
         <Typography variant="h5" gutterBottom>
