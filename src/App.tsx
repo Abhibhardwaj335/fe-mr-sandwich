@@ -77,9 +77,6 @@ const App: React.FC = () => {
                 </MenuItem>
               </>
             )}
-            <MenuItem component={Link} to="/order" onClick={toggleDrawer(false)}>
-              Order
-            </MenuItem>
             <MenuItem component={Link} to="/generate-qr" onClick={toggleDrawer(false)}>
               Generate QR Code
             </MenuItem>
@@ -114,10 +111,6 @@ const App: React.FC = () => {
               </Button>
             </>
           )}
-
-          <Button variant="contained" component={Link} to="/order" sx={{ mr: 2 }}>
-            Order
-          </Button>
           <Button variant="contained" component={Link} to="/generate-qr" sx={{ mr: 2 }}>
             Generate QR Code
           </Button>

@@ -85,6 +85,11 @@ const OrderPage: React.FC = () => {
 
   return (
     <CenteredFormLayout title="Place an Order">
+    {tableId && (
+      <Typography variant="h6" mt={2}>
+        You're ordering for <strong>Table {tableId}</strong>
+      </Typography>
+    )}
       {loading ? (
         <CircularProgress />
       ) : (
