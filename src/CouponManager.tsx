@@ -20,7 +20,7 @@ export default function CouponManager() {
 
   const fetchCoupons = async () => {
     try {
-      const res = await axios.get("/coupons");
+      const res = await axios.get(import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL + "/coupons");
       const data = Array.isArray(res.data) ? res.data : res.data.coupons || [];
       setCoupons(data);
     } catch (err) {
@@ -31,7 +31,7 @@ export default function CouponManager() {
 
   const createCoupon = async () => {
     try {
-      await axios.post("/coupons", newCoupon);
+      await axios.post(import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL + "/coupons", newCoupon);
       setNewCoupon({ title: "", code: "", description: "", validFrom: "", validTo: "", usageLimit: 0 });
       fetchCoupons();
       setViewMode("existing"); // Switch to existing coupons view after creating a coupon
@@ -42,7 +42,7 @@ export default function CouponManager() {
 
   const deleteCoupon = async (code: string) => {
     try {
-      await axios.delete(`/coupons/${code}`);
+      await axios.delete(import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL + `/coupons/${code}`);
       fetchCoupons();
     } catch (err) {
       console.error("Failed to delete coupon", err);

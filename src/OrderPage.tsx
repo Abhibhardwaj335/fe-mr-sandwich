@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Button, Typography, CircularProgress, TextField } from '@mui/material';
+import {
+  Box,
+  Button,
+  Typography,
+  CircularProgress,
+  TextField
+} from '@mui/material';
 import CenteredFormLayout from "./components/CenteredFormLayout";
 
 const OrderPage: React.FC = () => {
@@ -12,7 +18,6 @@ const OrderPage: React.FC = () => {
 
   const tableId = new URLSearchParams(window.location.search).get('tableId') || '';
 
-  // Mock data for testing
   const mockMenuItems = [
     { id: 1, name: "Cheese Sandwich", price: 5.99 },
     { id: 2, name: "Veggie Wrap", price: 6.49 },
@@ -25,17 +30,13 @@ const OrderPage: React.FC = () => {
     const fetchMenu = async () => {
       setLoading(true);
       try {
-        // Uncomment below to call real API
-        // const response = await axios.get(
-        //   `${import.meta.env.VITE_API_URL}/menu`
-        // );
-
-        // Mock API response for testing
-        const response = { data: { menuItems: mockMenuItems } };
-
+        const response = await axios.get(
+          `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/menu`
+        );
         setMenuItems(response.data.menuItems);
       } catch (err) {
-        console.error('Error fetching menu:', err);
+        console.error('Error fetching menu, using mock items:', err);
+        setMenuItems(mockMenuItems);
       } finally {
         setLoading(false);
       }
@@ -48,6 +49,10 @@ const OrderPage: React.FC = () => {
     setSelectedItems((prev) => [...prev, item]);
   };
 
+  const calculateTotal = () => {
+    return selectedItems.reduce((total, item) => total + item.price, 0).toFixed(2);
+  };
+
   const handlePlaceOrder = async () => {
     if (!paymentDetails || selectedItems.length === 0) {
       alert("Please add items and provide payment details.");
@@ -57,25 +62,22 @@ const OrderPage: React.FC = () => {
     setLoading(true);
 
     try {
-      const customerId = "customerId123"; // Replace with actual customer ID
-
-      // Uncomment below to call real API for placing order
-      // const response = await axios.post(`${import.meta.env.VITE_API_URL}/orders`, {
-      //   customerId,
-      //   tableId,
-      //   items: selectedItems,
-      //   paymentDetails
-      // });
-
-      // Mock API response for placing order
-      const response = {
-        data: { message: 'Order placed successfully', orderId: 'order#12345' }
-      };
+      const response = await axios.post(
+        `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/orders`,
+        {
+          tableId,
+          items: selectedItems,
+          paymentDetails
+        }
+      );
 
       setOrderPlaced(true);
-      console.log(response.data);
+      console.log('Order placed:', response.data);
+      setSelectedItems([]);
+      setPaymentDetails('');
     } catch (err) {
       console.error('Error placing order:', err);
+      alert('Failed to place order');
     } finally {
       setLoading(false);
     }
@@ -83,7 +85,6 @@ const OrderPage: React.FC = () => {
 
   return (
     <CenteredFormLayout title="Place an Order">
-      <Typography variant="h4">Order Page</Typography>
       {loading ? (
         <CircularProgress />
       ) : (
@@ -100,6 +101,20 @@ const OrderPage: React.FC = () => {
               </Button>
             </Box>
           ))}
+        </Box>
+      )}
+
+      {selectedItems.length > 0 && (
+        <Box mt={4}>
+          <Typography variant="h6" gutterBottom>Items in Your Order:</Typography>
+          {selectedItems.map((item, index) => (
+            <Typography key={index}>
+              {item.name} - ${item.price}
+            </Typography>
+          ))}
+          <Typography variant="subtitle1" mt={2}>
+            <strong>Total:</strong> ${calculateTotal()}
+          </Typography>
         </Box>
       )}
 
@@ -122,7 +137,11 @@ const OrderPage: React.FC = () => {
         </Button>
       </Box>
 
-      {orderPlaced && <Typography variant="h6" mt={4}>Order placed successfully!</Typography>}
+      {orderPlaced && (
+        <Typography variant="h6" mt={4} color="success.main">
+          ✅ Order placed successfully!
+        </Typography>
+      )}
     </CenteredFormLayout>
   );
 };

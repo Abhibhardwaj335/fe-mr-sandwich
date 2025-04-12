@@ -18,73 +18,13 @@ const CustomerDashboard: React.FC = () => {
   const [messages, setMessages] = useState<any[]>([]);
   const [coupons, setCoupons] = useState<any[]>([]); // State for coupon usage
 
-  useEffect(() => {
-    // ✅ Simulate a delay and mock data
-    const mockResponse = {
-      customer: {
-        customerId: "abc123",
-        name: "Aman",
-        phoneNumber: "+911234567890",
-        dob: "1995-05-01",
-      },
-      rewards: [
-        {
-          recordType: "reward",
-          customerId: "abc123",
-          rewardType: "Loyalty",
-          description: "Free drink",
-          date: "2025-04-10",
-        },
-        {
-          recordType: "reward",
-          customerId: "abc123",
-          rewardType: "Referral",
-          description: "20% off",
-          date: "2025-04-01",
-        },
-      ],
-      messages: [
-        {
-          content: "Hi Aman! Here's our new sandwich menu 🍔",
-          date: "2025-04-05",
-        },
-        {
-          content: "Happy Birthday Aman! Enjoy a 20% off 🎉",
-          date: "2025-04-01",
-        },
-      ],
-      coupons: [
-        {
-          couponCode: "SUMMER20",
-          description: "20% off Summer Special",
-          dateUsed: "2025-04-01",
-        },
-        {
-          couponCode: "BIRTHDAY25",
-          description: "25% off Birthday Discount",
-          dateUsed: "2025-04-10",
-        },
-      ], // Added mock coupon data
-    };
-
-    setLoading(true);
-    setTimeout(() => {
-      setCustomerData(mockResponse.customer);
-      setRewards(mockResponse.rewards);
-      setMessages(mockResponse.messages);
-      setCoupons(mockResponse.coupons); // Setting mock coupon data
-      setLoading(false);
-    }, 500);
-  }, []);
-
-  /* // Uncomment for real API integration
   const fetchDashboard = async () => {
     if (!customerId) return alert("Enter a valid customer ID.");
     setLoading(true);
 
     try {
       const res = await axios.get(
-        `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/dashboard/${customerId}`
+        `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/dashboard/?id=${customerId}`
       );
       setCustomerData(res.data.customer);
       setRewards(res.data.rewards);
@@ -97,7 +37,6 @@ const CustomerDashboard: React.FC = () => {
       setLoading(false);
     }
   };
-  */
 
   return (
     <CenteredFormLayout title="Customer Dashboard">
@@ -110,8 +49,7 @@ const CustomerDashboard: React.FC = () => {
       />
 
       <Button
-        onClick={() => alert("Mock View Only - Connect API to enable")}
-        // onClick={fetchDashboard} // Uncomment for real call
+        onClick={fetchDashboard} // Uncomment for real call
         variant="contained"
         color="primary"
         disabled={loading}
