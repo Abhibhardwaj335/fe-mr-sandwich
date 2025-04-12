@@ -5,7 +5,6 @@ const ProtectedRoute = ({ children, allowedRoles }: { children: React.ReactNode;
   const location = useLocation();
 
   if (!role || !allowedRoles.includes(role)) {
-    // 👇 Redirect to login and store intended location
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  Box,
-  TextField,
-  Button,
-  MenuItem,
-  CircularProgress,
-} from "@mui/material";
+import { Box, TextField, Button, CircularProgress } from "@mui/material";
 import CenteredFormLayout from "./components/CenteredFormLayout"; // Reuse your existing layout
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState("");
-  const [role, setRole] = useState("admin");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const location = useLocation();
@@ -31,42 +25,17 @@ const Login: React.FC = () => {
   const handleLogin = async () => {
     setLoading(true);
 
-    // 👉 Simulate delay for realism
     setTimeout(() => {
-      // ✅ MOCK: Set role and authentication in localStorage
-      localStorage.setItem("userRole", role);
-      localStorage.setItem("username", username);
-      localStorage.setItem("isAuthenticated", "true");
-
-      // ✅ Navigate to the page the user tried to access
-      navigate(from, { replace: true });
-      setLoading(false);
-    }, 1000);
-
-    // 🔒 Actual backend call when ready
-    /*
-    try {
-      const response = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
-
-      const data = await response.json();
-      if (data.role) {
-        localStorage.setItem("userRole", data.role);
-        localStorage.setItem("username", data.username);
+      if (username === "admin" && password === "Admin@#2025") {
+        localStorage.setItem("userRole", "admin");
+        localStorage.setItem("username", username);
         localStorage.setItem("isAuthenticated", "true");
         navigate(from, { replace: true });
       } else {
-        // show error
+        alert("Invalid credentials");
       }
-    } catch (error) {
-      console.error("Login failed", error);
-    } finally {
       setLoading(false);
-    }
-    */
+    }, 1000);
   };
 
   return (
@@ -79,21 +48,17 @@ const Login: React.FC = () => {
           onChange={(e) => setUsername(e.target.value)}
         />
         <TextField
-          select
-          label="Select Role"
+          label="Password"
+          type="password"
           fullWidth
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-        >
-          <MenuItem value="admin">Admin</MenuItem>
-          <MenuItem value="staff">Staff</MenuItem>
-        </TextField>
-
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
         <Button
           variant="contained"
           color="primary"
           onClick={handleLogin}
-          disabled={loading || username.trim() === ""}
+          disabled={loading || username.trim() === "" || password.trim() === ""}
         >
           {loading ? <CircularProgress size={24} color="inherit" /> : "Login"}
         </Button>

@@ -91,7 +91,7 @@ const OrderPage: React.FC = () => {
         <Box>
           {menuItems.map((item) => (
             <Box key={item.id} display="flex" justifyContent="space-between" mb={2}>
-              <Typography>{item.name} - ${item.price}</Typography>
+              <Typography>{item.name} - RS/- {item.price}</Typography>
               <Button
                 variant="contained"
                 color="primary"
