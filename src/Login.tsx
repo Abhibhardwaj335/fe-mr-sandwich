@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Box, TextField, Button, CircularProgress } from "@mui/material";
-import CenteredFormLayout from "./components/CenteredFormLayout"; // Reuse your existing layout
+import CenteredFormLayout from "./components/CenteredFormLayout";
 
-const Login: React.FC = () => {
+type LoginProps = {
+  onLogin: () => void;
+};
+
+const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -11,11 +15,9 @@ const Login: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Get the 'from' location for redirection after successful login
   const from = (location.state as any)?.from?.pathname || "/";
 
   useEffect(() => {
-    // Check if the user is already authenticated on page load
     const isAuthenticated = localStorage.getItem("isAuthenticated");
     if (isAuthenticated === "true") {
       navigate(from, { replace: true });
@@ -30,6 +32,8 @@ const Login: React.FC = () => {
         localStorage.setItem("userRole", "admin");
         localStorage.setItem("username", username);
         localStorage.setItem("isAuthenticated", "true");
+
+        onLogin(); // Trigger parent's login handler
         navigate(from, { replace: true });
       } else {
         alert("Invalid credentials");
