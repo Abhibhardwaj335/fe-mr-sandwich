@@ -43,7 +43,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         alert("Invalid credentials");
       }
     } catch (err) {
-      alert("Login failed" + err);
+      alert("Login failed");
     }
     setLoading(false);
    };
