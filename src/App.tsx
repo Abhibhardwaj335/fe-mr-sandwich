@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Link} from "react-router-dom";
 import CustomerForm from "./CustomerForm";
 import SendWhatsApp from "./SendWhatsApp";
 import ManageRewards from "./ManageRewards";
@@ -14,16 +14,14 @@ import {
   Button,
   MenuItem,
   IconButton,
-  Drawer,
-  Typography,
+  Drawer
 } from "@mui/material";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import MenuIcon from "@mui/icons-material/Menu";
 
 const App: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const role = localStorage.getItem("userRole");
+  //const role = localStorage.getItem("userRole");
 
   // Set authentication status based on localStorage
   useEffect(() => {
