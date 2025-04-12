@@ -22,8 +22,6 @@ const GenerateQRCode: React.FC = () => {
 
   return (
     <CenteredFormLayout title="Generate QR Code">
-      <Typography variant="h4" mb={2}>Generate QR Code</Typography>
-
       <TextField
         label="Enter Table ID"
         fullWidth

@@ -15,8 +15,10 @@ const OrderPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [paymentDetails, setPaymentDetails] = useState<string>('');
   const [orderPlaced, setOrderPlaced] = useState<boolean>(false);
+  const [manualTableId, setManualTableId] = useState<string>("");
 
-  const tableId = new URLSearchParams(window.location.search).get('tableId') || '';
+  const urlTableId = new URLSearchParams(window.location.search).get('tableId') || '';
+  const effectiveTableId = urlTableId || manualTableId;
 
   const mockMenuItems = [
     { id: 1, name: "Cheese Sandwich", price: 5.99 },
@@ -54,6 +56,11 @@ const OrderPage: React.FC = () => {
   };
 
   const handlePlaceOrder = async () => {
+    if (!effectiveTableId) {
+      alert("Please enter a Table ID.");
+      return;
+    }
+
     if (!paymentDetails || selectedItems.length === 0) {
       alert("Please add items and provide payment details.");
       return;
@@ -65,7 +72,7 @@ const OrderPage: React.FC = () => {
       const response = await axios.post(
         `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/orders`,
         {
-          tableId,
+          tableId: effectiveTableId,
           items: selectedItems,
           paymentDetails
         }
@@ -85,11 +92,20 @@ const OrderPage: React.FC = () => {
 
   return (
     <CenteredFormLayout title="Place an Order">
-    {tableId && (
-      <Typography variant="h6" mt={2}>
-        You're ordering for <strong>Table {tableId}</strong>
-      </Typography>
-    )}
+      {effectiveTableId ? (
+        <Typography variant="h6" mt={2}>
+          You're ordering for <strong>Table {effectiveTableId}</strong>
+        </Typography>
+      ) : (
+        <TextField
+          label="Enter Table ID"
+          fullWidth
+          value={manualTableId}
+          onChange={(e) => setManualTableId(e.target.value)}
+          sx={{ mb: 2 }}
+        />
+      )}
+
       {loading ? (
         <CircularProgress />
       ) : (
@@ -114,11 +130,11 @@ const OrderPage: React.FC = () => {
           <Typography variant="h6" gutterBottom>Items in Your Order:</Typography>
           {selectedItems.map((item, index) => (
             <Typography key={index}>
-              {item.name} - ${item.price}
+              {item.name} - RS/- {item.price}
             </Typography>
           ))}
           <Typography variant="subtitle1" mt={2}>
-            <strong>Total:</strong> ${calculateTotal()}
+            <strong>Total:</strong> RS/- {calculateTotal()}
           </Typography>
         </Box>
       )}
