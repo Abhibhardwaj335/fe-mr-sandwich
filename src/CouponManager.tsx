@@ -42,7 +42,7 @@ export default function CouponManager() {
 
   const deleteCoupon = async (code: string) => {
     try {
-      await axios.delete(import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL + `/coupons/${code}`);
+      await axios.delete(import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL + `/coupons/?code=${code}`);
       fetchCoupons();
     } catch (err) {
       console.error("Failed to delete coupon", err);
