@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { ReactNode } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -17,7 +17,7 @@ import {
   Drawer,
   IconButton,
   List,
-  ListItem,
+  ListItemButton,
   ListItemIcon,
   ListItemText,
   Box,
@@ -68,30 +68,32 @@ export default function MainLayout({ children, isAuthenticated, setIsAuthenticat
       <div className="text-2xl font-bold mb-6">🍔 Mr. Sandwich</div>
       <List>
         {filteredNavItems.map((item) => (
-          <ListItem
+          <ListItemButton
             key={item.to}
-            button
             component={NavLink}
             to={item.to}
-            onClick={toggleDrawer(false)}
-            className={({ isActive }: any) =>
-              `rounded-lg px-3 py-2 transition-all ${
-                isActive ? "bg-blue-100 text-blue-700 font-semibold" : "text-gray-700 hover:bg-gray-200"
-              }`
-            }
+            sx={{
+              borderRadius: "8px",
+              marginBottom: "6px",
+              "&.active": {
+                backgroundColor: "#DBEAFE",
+                color: "#1D4ED8",
+                fontWeight: "bold",
+              },
+            }}
           >
             <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.label} />
-          </ListItem>
+          </ListItemButton>
         ))}
 
         {isAuthenticated && (
-          <ListItem button onClick={handleLogout}>
+          <ListItemButton onClick={handleLogout}>
             <ListItemIcon>
               <LogOut />
             </ListItemIcon>
             <ListItemText primary="Logout" />
-          </ListItem>
+          </ListItemButton>
         )}
       </List>
     </Box>
@@ -102,7 +104,7 @@ export default function MainLayout({ children, isAuthenticated, setIsAuthenticat
       {/* Sidebar for desktop */}
       <aside className="w-60 bg-white shadow-md p-4 hidden md:block">
         <div className="text-2xl font-bold mb-6">🍔 Mr. Sandwich</div>
-        <nav className="space-y-3">
+        <nav className="space-y-2">
           {filteredNavItems.map((item) => (
             <NavLink
               key={item.to}
