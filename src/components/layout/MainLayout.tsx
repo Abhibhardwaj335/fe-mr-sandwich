@@ -148,7 +148,7 @@ export default function MainLayout({ children, isAuthenticated, setIsAuthenticat
             </IconButton>
           </div>
           <h1 className="text-xl font-semibold text-gray-800 mx-auto md:mx-0">
-            {filteredNavItems.find((item) => item.to === location.pathname)?.label || "Dashboard"}
+             {isAuthenticated ? `Welcome Back, Admin! 🍔` : `Welcome to Mr. Sandwich! 🍔`}
           </h1>
           <div className="w-10" />
         </header>
