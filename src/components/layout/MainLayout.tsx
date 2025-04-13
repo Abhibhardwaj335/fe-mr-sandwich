@@ -2,14 +2,16 @@
 
 import { ReactNode } from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Home, UserPlus, Gift, MessageCircle, QrCode, LogIn } from "lucide-react";
+import { Home, UserPlus, Gift, MessageCircle, QrCode, Ticket, LayoutDashboard, LogIn } from "lucide-react";
 
 const navItems = [
-  { to: "/", label: "Order", icon: <Home /> },
-  { to: "/customer", label: "Customer Form", icon: <UserPlus /> },
-  { to: "/rewards", label: "Manage Rewards", icon: <Gift /> },
-  { to: "/send", label: "Send WhatsApp", icon: <MessageCircle /> },
+  { to: "/order", label: "Order", icon: <Home /> },
   { to: "/generate-qr", label: "Generate QR", icon: <QrCode /> },
+  { to: "/", label: "Customer Form", icon: <UserPlus /> },
+  { to: "/send-whatsapp", label: "Send WhatsApp", icon: <MessageCircle /> },
+  { to: "/rewards", label: "Manage Rewards", icon: <Gift /> },
+  { to: "/coupons", label: "Manage Coupons", icon: <Ticket /> },
+  { to: "/customer-dashboard", label: "Customer Dashboard", icon: <LayoutDashboard /> },
   { to: "/login", label: "Login", icon: <LogIn /> },
 ];
 
