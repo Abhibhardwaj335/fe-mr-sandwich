@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
-import CustomerForm from "./CustomerForm";
-import SendWhatsApp from "./SendWhatsApp";
-import ManageRewards from "./ManageRewards";
-import CouponManager from "./CouponManager";
-import CustomerDashboard from "./CustomerDashboard";
-import OrderPage from "./OrderPage";
-import GenerateQRCode from "./GenerateQRCode";
-import Login from "./Login";
+import MainLayout from "./components/layout/MainLayout";
+import CustomerForm from "./pages/CustomerForm";
+import SendWhatsApp from "./pages/SendWhatsApp";
+import ManageRewards from "./pages/ManageRewards";
+import CouponManager from "./pages/CouponManager";
+import CustomerDashboard from "./pages/CustomerDashboard";
+import OrderPage from "./pages/OrderPage";
+import GenerateQRCode from "./pages/GenerateQRCode";
+import Login from "./pages/Login";
 import ProtectedRoute from "./ProtectedRoute";
 import {
   Box,
@@ -44,6 +45,7 @@ const App: React.FC = () => {
 
   return (
     <Router>
+      <MainLayout>
       {/* Full page container */}
       <Box sx={{ width: "100vw", minHeight: "100vh", boxSizing: "border-box" }}>
         {/* Top-level layout wrapper */}
@@ -176,6 +178,7 @@ const App: React.FC = () => {
           } />
         </Routes>
       </Box>
+      </MainLayout>
     </Router>
   );
 };
