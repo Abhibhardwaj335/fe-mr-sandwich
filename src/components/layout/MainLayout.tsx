@@ -72,6 +72,7 @@ export default function MainLayout({ children, isAuthenticated, setIsAuthenticat
             key={item.to}
             component={NavLink}
             to={item.to}
+            onClick={toggleDrawer(false)}
             sx={{
               borderRadius: "8px",
               marginBottom: "6px",
