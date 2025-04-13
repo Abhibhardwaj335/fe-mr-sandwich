@@ -14,12 +14,12 @@ import CenteredFormLayout from "../components/CenteredFormLayout";
 import { UserPlus } from "lucide-react";
 
 const countryCodes = [
-  { code: "+91", label: "India" },
-  { code: "+1", label: "USA" },
-  { code: "+44", label: "UK" },
-  { code: "+61", label: "Australia" },
-  { code: "+81", label: "Japan" },
-  { code: "+49", label: "Germany" },
+  { code: "+91"},
+  { code: "+1"},
+  { code: "+44"},
+  { code: "+61"},
+  { code: "+81"},
+  { code: "+49"},
 ];
 
 const CustomerForm: React.FC = () => {
@@ -76,7 +76,7 @@ const CustomerForm: React.FC = () => {
           >
             {countryCodes.map((item) => (
               <MenuItem key={item.code} value={item.code}>
-                {item.label} ({item.code})
+                {item.code}
               </MenuItem>
             ))}
           </Select>
