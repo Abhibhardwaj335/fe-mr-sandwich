@@ -10,6 +10,7 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CenteredFormLayout from "../components/CenteredFormLayout";
+import { Ticket } from "lucide-react";
 
 export default function CouponManager() {
   const [coupons, setCoupons] = useState<any[]>([]);
@@ -52,7 +53,7 @@ export default function CouponManager() {
   useEffect(() => { fetchCoupons(); }, []);
 
   return (
-    <CenteredFormLayout>
+    <CenteredFormLayout title="Coupon Manager" icon={<Ticket />} >
       <Box display="flex" flexDirection="column" gap={2}>
         {/* Buttons for toggling views */}
         <Box display="flex" justifyContent="flex-start" gap={2}>

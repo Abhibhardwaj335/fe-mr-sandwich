@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Box, TextField, Button, CircularProgress } from "@mui/material";
 import CenteredFormLayout from "../components/CenteredFormLayout";
 import axios from "axios";
+import {Lock } from "lucide-react";
 
 type LoginProps = {
   onLogin: () => void;
@@ -49,7 +50,7 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
    };
 
   return (
-    <CenteredFormLayout>
+    <CenteredFormLayout title="Login" icon={<Lock />} >
       <Box display="flex" flexDirection="column" gap={2}>
         <TextField
           label="Username"

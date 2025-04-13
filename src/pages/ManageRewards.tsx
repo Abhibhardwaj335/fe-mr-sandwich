@@ -5,13 +5,14 @@ import CenteredFormLayout from "../components/CenteredFormLayout";
 import RewardForm from "../components/RewardForm";
 import SingleCustomerRewards from "../components/SingleCustomerRewards";
 import AllCustomerRewards from "../components/AllCustomerRewards";
+import { Gift } from "lucide-react";
 
 const ManageRewards: React.FC = () => {
   const [viewMode, setViewMode] = useState<"form" | "single" | "all">("form");
   const [phoneNumber, setPhoneNumber] = useState("");
 
   return (
-    <CenteredFormLayout>
+    <CenteredFormLayout title="Manage Rewards" icon={<Gift />}>
       {/* 🔁 View Navigation */}
       <Box sx={{ display: "flex", gap: 2, mt: 2 }}>
         <Button

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ReactNode } from "react";
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
   UserPlus,
@@ -10,7 +10,8 @@ import {
   Ticket,
   LayoutDashboard,
   LogIn,
-  Menu
+  LogOut,
+  Menu,
 } from "lucide-react";
 import {
   Drawer,
@@ -21,6 +22,12 @@ import {
   ListItemText,
   Box,
 } from "@mui/material";
+
+interface MainLayoutProps {
+  children: ReactNode;
+  isAuthenticated: boolean;
+  setIsAuthenticated: (value: boolean) => void;
+}
 
 const navItems = [
   { to: "/order", label: "Order", icon: <Home /> },
@@ -33,19 +40,34 @@ const navItems = [
   { to: "/login", label: "Login", icon: <LogIn /> },
 ];
 
-export default function MainLayout({ children }: { children: ReactNode }) {
+export default function MainLayout({ children, isAuthenticated, setIsAuthenticated }: MainLayoutProps) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem("isAuthenticated");
+    setIsAuthenticated(false);
+    navigate("/login");
+  };
 
   const toggleDrawer = (open: boolean) => () => {
     setMobileOpen(open);
   };
 
+  const filteredNavItems = navItems.filter((item) => {
+    if (!isAuthenticated) {
+      return ["/order", "/generate-qr", "/login"].includes(item.to);
+    } else {
+      return item.to !== "/login";
+    }
+  });
+
   const drawerContent = (
     <Box sx={{ width: 250, p: 2 }}>
       <div className="text-2xl font-bold mb-6">🍔 Mr. Sandwich</div>
       <List>
-        {navItems.map((item) => (
+        {filteredNavItems.map((item) => (
           <ListItem
             key={item.to}
             button
@@ -62,6 +84,15 @@ export default function MainLayout({ children }: { children: ReactNode }) {
             <ListItemText primary={item.label} />
           </ListItem>
         ))}
+
+        {isAuthenticated && (
+          <ListItem button onClick={handleLogout}>
+            <ListItemIcon>
+              <LogOut />
+            </ListItemIcon>
+            <ListItemText primary="Logout" />
+          </ListItem>
+        )}
       </List>
     </Box>
   );
@@ -72,7 +103,7 @@ export default function MainLayout({ children }: { children: ReactNode }) {
       <aside className="w-60 bg-white shadow-md p-4 hidden md:block">
         <div className="text-2xl font-bold mb-6">🍔 Mr. Sandwich</div>
         <nav className="space-y-3">
-          {navItems.map((item) => (
+          {filteredNavItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -87,6 +118,17 @@ export default function MainLayout({ children }: { children: ReactNode }) {
             </NavLink>
           ))}
         </nav>
+        {isAuthenticated && (
+          <div className="mt-4">
+            <button
+              onClick={handleLogout}
+              className="w-full text-left flex items-center gap-2 p-2 rounded-lg hover:bg-gray-200"
+            >
+              <LogOut />
+              Logout
+            </button>
+          </div>
+        )}
       </aside>
 
       {/* Mobile Drawer */}
@@ -94,20 +136,19 @@ export default function MainLayout({ children }: { children: ReactNode }) {
         {drawerContent}
       </Drawer>
 
-      {/* Main Content */}
+      {/* Main Content Area */}
       <div className="flex-1">
-        {/* Top AppBar */}
+        {/* Top Bar */}
         <header className="bg-white shadow px-6 py-4 sticky top-0 z-10 flex items-center justify-between">
-          {/* Mobile menu icon */}
           <div className="block md:hidden">
             <IconButton onClick={toggleDrawer(true)}>
               <Menu />
             </IconButton>
           </div>
           <h1 className="text-xl font-semibold text-gray-800 mx-auto md:mx-0">
-            {navItems.find((item) => item.to === location.pathname)?.label || "Dashboard"}
+            {filteredNavItems.find((item) => item.to === location.pathname)?.label || "Dashboard"}
           </h1>
-          <div className="w-10" /> {/* Spacer for alignment */}
+          <div className="w-10" />
         </header>
 
         {/* Page Content */}
