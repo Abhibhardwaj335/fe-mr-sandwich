@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ReactNode } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   Home,
   UserPlus,
@@ -41,7 +41,6 @@ const navItems = [
 ];
 
 export default function MainLayout({ children, isAuthenticated, setIsAuthenticated }: MainLayoutProps) {
-  const location = useLocation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
