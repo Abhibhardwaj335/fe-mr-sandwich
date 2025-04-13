@@ -8,7 +8,6 @@ import {
   TextField
 } from '@mui/material';
 import CenteredFormLayout from "../components/CenteredFormLayout";
-import { ShoppingCart } from "lucide-react";
 
 const OrderPage: React.FC = () => {
   const [menuItems, setMenuItems] = useState<any[]>([]);
@@ -92,7 +91,7 @@ const OrderPage: React.FC = () => {
   };
 
   return (
-    <CenteredFormLayout title="Place an Order"  icon={<ShoppingCart />}>
+    <CenteredFormLayout>
       {effectiveTableId ? (
         <Typography variant="h6" mt={2}>
           You're ordering for <strong>Table {effectiveTableId}</strong>

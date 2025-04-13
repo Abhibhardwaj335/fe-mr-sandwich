@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Box, Button, Typography, CircularProgress, TextField } from '@mui/material';
 import QRCode from 'react-qr-code';
 import CenteredFormLayout from "../components/CenteredFormLayout";
-import { QrCode } from "lucide-react";
 
 const GenerateQRCode: React.FC = () => {
   const [tableId, setTableId] = useState('');
@@ -22,7 +21,7 @@ const GenerateQRCode: React.FC = () => {
   };
 
   return (
-    <CenteredFormLayout title="Generate QR Code" icon={<QrCode />} >
+    <CenteredFormLayout>
       <TextField
         label="Enter Table ID"
         fullWidth

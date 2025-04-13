@@ -11,7 +11,6 @@ import {
   FormControl,
 } from "@mui/material";
 import CenteredFormLayout from "../components/CenteredFormLayout";
-import { Send } from "lucide-react";
 
 const SendWhatsApp: React.FC = () => {
   const [customerId, setCustomerId] = useState("");
@@ -78,7 +77,7 @@ const SendWhatsApp: React.FC = () => {
   };
 
   return (
-    <CenteredFormLayout title="Send WhatsApp Message" icon={<Send />}>
+    <CenteredFormLayout>
     <TextField
         fullWidth
         label="Customer ID"

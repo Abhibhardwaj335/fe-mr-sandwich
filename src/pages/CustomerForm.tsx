@@ -11,7 +11,6 @@ import {
   FormControl,
 } from "@mui/material";
 import CenteredFormLayout from "../components/CenteredFormLayout";
-import { UserPlus } from "lucide-react";
 
 const countryCodes = [
   { code: "+91", label: "India" },
@@ -55,7 +54,7 @@ const CustomerForm: React.FC = () => {
   };
 
   return (
-    <CenteredFormLayout title="Customer Form" icon={<UserPlus />} >
+    <CenteredFormLayout>
       <TextField
         fullWidth
         label="Name"

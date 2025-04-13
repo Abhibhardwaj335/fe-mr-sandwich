@@ -9,7 +9,6 @@ import {
   Divider,
 } from "@mui/material";
 import CenteredFormLayout from "../components/CenteredFormLayout";
-import { LayoutDashboard } from "lucide-react";
 
 const CustomerDashboard: React.FC = () => {
   const [customerId, setCustomerId] = useState("");
@@ -40,7 +39,7 @@ const CustomerDashboard: React.FC = () => {
   };
 
   return (
-    <CenteredFormLayout title="Customer Dashboard" icon={<LayoutDashboard />} >
+    <CenteredFormLayout>
       <TextField
         label="Customer ID"
         fullWidth
