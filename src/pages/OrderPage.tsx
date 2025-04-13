@@ -24,6 +24,7 @@ const OrderPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [paymentMethod, setPaymentMethod] = useState<string>(''); // To hold payment method
   const [orderPlaced, setOrderPlaced] = useState<boolean>(false);
+  const [orderId, setOrderId] = useState<string>(''); // Store the orderId of the first order
   const [manualTableId, setManualTableId] = useState<string>("");
 
   const urlTableId = new URLSearchParams(window.location.search).get('tableId') || '';
@@ -119,6 +120,7 @@ const OrderPage: React.FC = () => {
         }
       );
 
+      setOrderId(response.data.orderId); // Save the orderId
       setOrderPlaced(true);
       console.log('Order placed:', response.data);
       setSelectedItems([]);
@@ -126,6 +128,40 @@ const OrderPage: React.FC = () => {
     } catch (err) {
       console.error('Error placing order:', err);
       alert('Failed to place order');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddToExistingOrder = async () => {
+    if (!orderId) {
+      alert("No existing order to add items to.");
+      return;
+    }
+
+    if (!paymentMethod || selectedItems.length === 0) {
+      alert("Please add items and select a payment method.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/orders/${orderId}`,
+        {
+          items: selectedItems,
+          paymentMethod
+        }
+      );
+
+      console.log('Added items to existing order:', response.data);
+      setOrderPlaced(true);
+      setSelectedItems([]);
+      setPaymentMethod('');
+    } catch (err) {
+      console.error('Error adding items to existing order:', err);
+      alert('Failed to add items to existing order');
     } finally {
       setLoading(false);
     }
@@ -226,17 +262,17 @@ const OrderPage: React.FC = () => {
         <Button
           variant="contained"
           color="primary"
-          onClick={handlePlaceOrder}
+          onClick={orderPlaced ? handleAddToExistingOrder : handlePlaceOrder}
           disabled={loading}
           fullWidth
         >
-          {loading ? <CircularProgress size={24} /> : 'Place Order'}
+          {loading ? <CircularProgress size={24} /> : orderPlaced ? 'Add to Existing Order' : 'Place Order'}
         </Button>
       </Box>
 
       {orderPlaced && (
         <Typography variant="h6" mt={4} color="success.main">
-          ✅ Order placed successfully!
+          ✅ Order placed successfully! You can now add more items to your order.
         </Typography>
       )}
     </CenteredFormLayout>
