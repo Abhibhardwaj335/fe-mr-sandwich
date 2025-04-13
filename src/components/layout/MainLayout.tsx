@@ -46,6 +46,7 @@ export default function MainLayout({ children, isAuthenticated, setIsAuthenticat
 
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
+    localStorage.removeItem("userRole"); // Clear the role
     setIsAuthenticated(false);
     navigate("/login");
   };

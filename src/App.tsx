@@ -22,6 +22,7 @@ const App: React.FC = () => {
 
   const handleLogin = () => {
     localStorage.setItem("isAuthenticated", "true");
+    localStorage.setItem("userRole", "admin"); // Set the role here (this could also be dynamic)
     setIsAuthenticated(true);
   };
 
