@@ -10,7 +10,7 @@ import {
   InputLabel,
   FormControl,
 } from "@mui/material";
-import CenteredFormLayout from "./components/CenteredFormLayout";
+import CenteredFormLayout from "../components/CenteredFormLayout";
 import { Send } from "lucide-react";
 
 const SendWhatsApp: React.FC = () => {

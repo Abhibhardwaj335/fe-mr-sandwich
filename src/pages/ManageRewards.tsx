@@ -1,10 +1,10 @@
 // ManageRewards.tsx
 import React, { useState } from "react";
 import { Button, Box, TextField } from "@mui/material";
-import CenteredFormLayout from "./components/CenteredFormLayout";
-import RewardForm from "./components/RewardForm";
-import SingleCustomerRewards from "./components/SingleCustomerRewards";
-import AllCustomerRewards from "./components/AllCustomerRewards";
+import CenteredFormLayout from "../components/CenteredFormLayout";
+import RewardForm from "../components/RewardForm";
+import SingleCustomerRewards from "../components/SingleCustomerRewards";
+import AllCustomerRewards from "../components/AllCustomerRewards";
 import { Gift } from "lucide-react";
 
 const ManageRewards: React.FC = () => {

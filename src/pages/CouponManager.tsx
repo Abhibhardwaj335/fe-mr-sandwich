@@ -9,7 +9,7 @@ import {
   IconButton,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
-import CenteredFormLayout from "./components/CenteredFormLayout";
+import CenteredFormLayout from "../components/CenteredFormLayout";
 import { Ticket } from "lucide-react";
 
 export default function CouponManager() {

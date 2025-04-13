@@ -8,7 +8,7 @@ import {
   CircularProgress,
   Divider,
 } from "@mui/material";
-import CenteredFormLayout from "./components/CenteredFormLayout";
+import CenteredFormLayout from "../components/CenteredFormLayout";
 import { LayoutDashboard } from "lucide-react";
 
 const CustomerDashboard: React.FC = () => {

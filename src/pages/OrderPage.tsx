@@ -7,7 +7,7 @@ import {
   CircularProgress,
   TextField
 } from '@mui/material';
-import CenteredFormLayout from "./components/CenteredFormLayout";
+import CenteredFormLayout from "../components/CenteredFormLayout";
 import { ShoppingCart } from "lucide-react";
 
 const OrderPage: React.FC = () => {

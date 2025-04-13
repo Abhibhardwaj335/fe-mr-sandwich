@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Box, TextField, Button, CircularProgress } from "@mui/material";
-import CenteredFormLayout from "./components/CenteredFormLayout";
+import CenteredFormLayout from "../components/CenteredFormLayout";
 import axios from "axios";
 import {Lock } from "lucide-react";
 
