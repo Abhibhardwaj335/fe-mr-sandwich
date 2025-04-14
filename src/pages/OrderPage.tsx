@@ -148,10 +148,10 @@ const OrderPage: React.FC = () => {
 
     try {
       const response = await axios.put(
-        `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/orders/${orderId}`,
+        `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/orders?id=${orderId}`,
         {
           items: selectedItems,
-          paymentMethod
+          paymentDetails: paymentMethod
         }
       );
 

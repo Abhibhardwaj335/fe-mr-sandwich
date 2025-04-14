@@ -6,13 +6,16 @@ import {
   Box,
   Divider,
   Typography,
-  IconButton,
+  IconButton
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CenteredFormLayout from "../components/CenteredFormLayout";
 import { Ticket } from "lucide-react";
+import Snackbar from "@mui/material/Snackbar";
+import MuiAlert from "@mui/material/Alert";
 
 export default function CouponManager() {
+  const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" as "success" | "error" });
   const [coupons, setCoupons] = useState<any[]>([]);
   const [newCoupon, setNewCoupon] = useState({
     title: "", code: "", description: "", validFrom: "", validTo: "", usageLimit: 0,
@@ -35,7 +38,7 @@ export default function CouponManager() {
       await axios.post(import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL + "/coupons", newCoupon);
       setNewCoupon({ title: "", code: "", description: "", validFrom: "", validTo: "", usageLimit: 0 });
       fetchCoupons();
-      setViewMode("existing"); // Switch to existing coupons view after creating a coupon
+      setViewMode("existing");
     } catch (err) {
       console.error("Failed to create coupon", err);
     }
@@ -50,12 +53,22 @@ export default function CouponManager() {
     }
   };
 
+  const redeemCoupon = async (code: string) => {
+    try {
+      await axios.put(import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL + `/coupons?code=${code}`);
+      fetchCoupons();
+          setSnackbar({ open: true, message: "Coupon redeemed successfully!", severity: "success" });
+      } catch (err) {
+        console.error("Failed to redeem coupon", err);
+        setSnackbar({ open: true, message: "Failed to redeem coupon", severity: "error" });
+    }
+  };
+
   useEffect(() => { fetchCoupons(); }, []);
 
   return (
-    <CenteredFormLayout title="Coupon Manager" icon={<Ticket />} >
+    <CenteredFormLayout title="Coupon Manager" icon={<Ticket />}>
       <Box display="flex" flexDirection="column" gap={2}>
-        {/* Buttons for toggling views */}
         <Box display="flex" justifyContent="flex-start" gap={2}>
           <Button
             variant={viewMode === "create" ? "contained" : "outlined"}
@@ -75,7 +88,6 @@ export default function CouponManager() {
 
         <Divider sx={{ my: 2 }} />
 
-        {/* Show Create Coupon Form if viewMode is "create" */}
         {viewMode === "create" && (
           <>
             <TextField label="Title" value={newCoupon.title}
@@ -100,7 +112,6 @@ export default function CouponManager() {
           </>
         )}
 
-        {/* Show Existing Coupons if viewMode is "existing" */}
         {viewMode === "existing" && (
           <>
             <Typography variant="h6">Existing Coupons</Typography>
@@ -116,9 +127,19 @@ export default function CouponManager() {
                       <Typography variant="body2">Valid: {c.validFrom} to {c.validTo}</Typography>
                       <Typography variant="body2">Used {c.usedCount || 0} / {c.usageLimit}</Typography>
                     </Box>
-                    <IconButton onClick={() => deleteCoupon(c.code)} color="error">
-                      <DeleteIcon />
-                    </IconButton>
+                    <Box display="flex" gap={1} alignItems="center">
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="success"
+                        onClick={() => redeemCoupon(c.code)}
+                      >
+                        Redeem
+                      </Button>
+                      <IconButton onClick={() => deleteCoupon(c.code)} color="error">
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
                   </Box>
                 </Box>
               ))
