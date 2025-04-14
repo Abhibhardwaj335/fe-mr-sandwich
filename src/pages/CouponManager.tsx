@@ -147,6 +147,22 @@ export default function CouponManager() {
           </>
         )}
       </Box>
+      <Snackbar
+            open={snackbar.open}
+            autoHideDuration={3000}
+            onClose={() => setSnackbar({ ...snackbar, open: false })}
+            anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+          >
+            <MuiAlert
+              onClose={() => setSnackbar({ ...snackbar, open: false })}
+              severity={snackbar.severity}
+              elevation={6}
+              variant="filled"
+              sx={{ width: "100%" }}
+            >
+              {snackbar.message}
+            </MuiAlert>
+          </Snackbar>
     </CenteredFormLayout>
   );
 }
