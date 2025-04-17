@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { menuCategories } from "../components/data/menuItems";
 import MenuView from "../components/MenuView";
 import ReviewCart from "../components/ReviewCart";
 import CenteredFormLayout from "../components/CenteredFormLayout";
 import { ShoppingCart, MinusCircle, PlusCircle } from "lucide-react";
-import { Box, Button, IconButton, TextField, Typography } from "@mui/material";
+import { Box, Button, IconButton, TextField, Typography, CircularProgress, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
+import axios from "axios";
 
 interface CartItem {
   id: number;
@@ -20,6 +21,10 @@ const OrderPage: React.FC = () => {
   const [selectedItems, setSelectedItems] = useState<CartItem[]>([]);
   const [view, setView] = useState<"menu" | "cart">("menu");
   const [manualTableId, setManualTableId] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [paymentMethod, setPaymentMethod] = useState<string>("");
+  const [orderPlaced, setOrderPlaced] = useState<boolean>(false);
+  const [orderId, setOrderId] = useState<string>("");
   const urlTableId = new URLSearchParams(window.location.search).get("tableId") || "";
   const effectiveTableId = urlTableId || manualTableId;
 
@@ -48,22 +53,82 @@ const OrderPage: React.FC = () => {
   const handleRemove = (id: number) =>
     setSelectedItems((prev) => prev.filter((i) => i.id !== id));
 
-  const handleSubmitOrder = () => {
+  const handleSubmitOrder = async () => {
+    if (!effectiveTableId) {
+      alert("Please enter a Table ID.");
+      return;
+    }
+
+    if (!paymentMethod || selectedItems.length === 0) {
+      alert("Please add items and select a payment method.");
+      return;
+    }
+
+    setLoading(true);
     const orderPayload = {
       tableId: effectiveTableId,
       items: selectedItems.map(({ id, name, count, price }) => ({
         id, name, count, price,
       })),
+      paymentDetails: paymentMethod,
       total: selectedItems.reduce((sum, i) => sum + i.price * i.count, 0),
       timestamp: new Date().toISOString(),
     };
 
-    // 👇 You can replace this with an actual API call
-    console.log("Submitting order:", orderPayload);
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/orders`,
+        orderPayload
+      );
 
-    alert("Order submitted! Thank you.");
-    setSelectedItems([]); // Clear cart
-    setView("menu"); // Go back to menu
+      setOrderId(response.data.orderId);
+      setOrderPlaced(true);
+      alert("Order placed successfully!");
+      setSelectedItems([]); // Clear cart
+      setView("menu"); // Go back to menu
+    } catch (err) {
+      console.error("Error placing order:", err);
+      alert("Failed to place order");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddToExistingOrder = async () => {
+    if (!orderId) {
+      alert("No existing order to add items to.");
+      return;
+    }
+
+    if (!paymentMethod || selectedItems.length === 0) {
+      alert("Please add items and select a payment method.");
+      return;
+    }
+
+    setLoading(true);
+
+    const orderPayload = {
+      items: selectedItems,
+      paymentDetails: paymentMethod,
+      total: selectedItems.reduce((sum, i) => sum + i.price * i.count, 0),
+    };
+
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/orders?id=${orderId}`,
+        orderPayload
+      );
+
+      setOrderPlaced(true);
+      alert("Items added to the existing order!");
+      setSelectedItems([]); // Clear cart
+      setView("menu"); // Go back to menu
+    } catch (err) {
+      console.error("Error adding items to existing order:", err);
+      alert("Failed to add items to existing order");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -136,11 +201,7 @@ const OrderPage: React.FC = () => {
                         </IconButton>
                       </>
                     ) : (
-                      <Button
-                        variant="contained"
-                        size="small"
-                        onClick={() => handleAddItem(item)}
-                      >
+                      <Button variant="contained" onClick={() => handleAddItem(item)}>
                         Add
                       </Button>
                     )}
@@ -150,32 +211,51 @@ const OrderPage: React.FC = () => {
             })}
           </Box>
 
-          {selectedItems.length > 0 && (
-            <Button
-              variant="contained"
-              color="primary"
-              fullWidth
-              sx={{ mt: 4 }}
-              onClick={() => setView("cart")}
-            >
-              Review Cart ({selectedItems.reduce((sum, i) => sum + i.count, 0)} item
-              {selectedItems.length > 1 ? "s" : ""})
-            </Button>
-          )}
+          <Button
+            variant="outlined"
+            fullWidth
+            onClick={() => setView("cart")}
+            sx={{ mt: 4 }}
+          >
+            Review Cart
+          </Button>
         </>
       )}
 
       {view === "cart" && (
         <ReviewCart
           selectedItems={selectedItems}
+          onRemove={handleRemove}
           onIncrease={handleIncrease}
           onDecrease={handleDecrease}
-          onRemove={handleRemove}
+          onSubmit={orderPlaced ? handleAddToExistingOrder : handleSubmitOrder}
           onBack={() => setView("menu")}
-          tableId={effectiveTableId}
-          onSubmit={handleSubmitOrder}
         />
       )}
+
+      <Box mt={4}>
+        <FormControl fullWidth sx={{ mb: 2 }}>
+          <InputLabel>Payment Method</InputLabel>
+          <Select
+            value={paymentMethod}
+            onChange={(e) => setPaymentMethod(e.target.value)}
+            label="Payment Method"
+          >
+            <MenuItem value="Cash">Cash</MenuItem>
+            <MenuItem value="Online">Online</MenuItem>
+          </Select>
+        </FormControl>
+
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={orderPlaced ? handleAddToExistingOrder : handleSubmitOrder}
+          disabled={loading}
+          fullWidth
+        >
+          {loading ? <CircularProgress size={24} /> : orderPlaced ? "Add to Existing Order" : "Place Order"}
+        </Button>
+      </Box>
     </CenteredFormLayout>
   );
 };
