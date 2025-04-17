@@ -16,8 +16,6 @@ interface CartItem {
   count: number;
 }
 
-// ...imports stay the same
-
 const OrderPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>(menuCategories[0].name);
   const [selectedItems, setSelectedItems] = useState<CartItem[]>([]);
