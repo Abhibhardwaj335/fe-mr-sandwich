@@ -16,6 +16,8 @@ interface CartItem {
   count: number;
 }
 
+// ...imports stay the same
+
 const OrderPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>(menuCategories[0].name);
   const [selectedItems, setSelectedItems] = useState<CartItem[]>([]);
@@ -25,6 +27,7 @@ const OrderPage: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [orderPlaced, setOrderPlaced] = useState<boolean>(false);
   const [orderId, setOrderId] = useState<string>("");
+
   const urlTableId = new URLSearchParams(window.location.search).get("tableId") || "";
   const effectiveTableId = urlTableId || manualTableId;
 
@@ -84,8 +87,8 @@ const OrderPage: React.FC = () => {
       setOrderId(response.data.orderId);
       setOrderPlaced(true);
       alert("Order placed successfully!");
-      setSelectedItems([]); // Clear cart
-      setView("menu"); // Go back to menu
+      setSelectedItems([]);
+      setView("menu");
     } catch (err) {
       console.error("Error placing order:", err);
       alert("Failed to place order");
@@ -119,15 +122,15 @@ const OrderPage: React.FC = () => {
     };
 
     try {
-      const response = await axios.put(
+      await axios.put(
         `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/orders?id=${orderId}`,
         orderPayload
       );
 
       setOrderPlaced(true);
       alert("Items added to the existing order!");
-      setSelectedItems([]); // Clear cart
-      setView("menu"); // Go back to menu
+      setSelectedItems([]);
+      setView("menu");
     } catch (err) {
       console.error("Error adding items to existing order:", err);
       alert("Failed to add items to existing order");
@@ -235,32 +238,12 @@ const OrderPage: React.FC = () => {
           onDecrease={handleDecrease}
           onSubmit={orderPlaced ? handleAddToExistingOrder : handleSubmitOrder}
           onBack={() => setView("menu")}
+          paymentMethod={paymentMethod}
+          setPaymentMethod={setPaymentMethod}
+          loading={loading}
+          orderPlaced={orderPlaced}
         />
       )}
-
-      <Box mt={4}>
-        <FormControl fullWidth sx={{ mb: 2 }}>
-          <InputLabel>Payment Method</InputLabel>
-          <Select
-            value={paymentMethod}
-            onChange={(e) => setPaymentMethod(e.target.value)}
-            label="Payment Method"
-          >
-            <MenuItem value="Cash">Cash</MenuItem>
-            <MenuItem value="Online">Online</MenuItem>
-          </Select>
-        </FormControl>
-
-        <Button
-          variant="contained"
-          color="primary"
-          onClick={orderPlaced ? handleAddToExistingOrder : handleSubmitOrder}
-          disabled={loading}
-          fullWidth
-        >
-          {loading ? <CircularProgress size={24} /> : orderPlaced ? "Add to Existing Order" : "Place Order"}
-        </Button>
-      </Box>
     </CenteredFormLayout>
   );
 };

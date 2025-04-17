@@ -1,5 +1,15 @@
 import React from "react";
-import { Box, Typography, IconButton, Button, Divider } from "@mui/material";
+import {
+  Box,
+  Typography,
+  IconButton,
+  Button,
+  Divider,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+} from "@mui/material";
 import { PlusCircle, MinusCircle, XCircle } from "lucide-react";
 
 interface CartItem {
@@ -16,6 +26,10 @@ interface Props {
   onDecrease: (id: number) => void;
   onSubmit: () => void;
   onBack: () => void;
+  paymentMethod: string;
+  setPaymentMethod: (value: string) => void;
+  loading: boolean;
+  orderPlaced: boolean;
 }
 
 const ReviewCart: React.FC<Props> = ({
@@ -25,6 +39,10 @@ const ReviewCart: React.FC<Props> = ({
   onDecrease,
   onSubmit,
   onBack,
+  paymentMethod,
+  setPaymentMethod,
+  loading,
+  orderPlaced,
 }) => {
   const total = selectedItems
     .reduce((sum, item) => sum + item.price * item.count, 0)
@@ -40,6 +58,18 @@ const ReviewCart: React.FC<Props> = ({
       <Button variant="outlined" onClick={onBack} sx={{ mb: 2 }}>
         Back to Menu
       </Button>
+
+      <FormControl fullWidth sx={{ mb: 2 }}>
+        <InputLabel>Payment Method</InputLabel>
+        <Select
+          value={paymentMethod}
+          onChange={(e) => setPaymentMethod(e.target.value)}
+          label="Payment Method"
+        >
+          <MenuItem value="Cash">Cash</MenuItem>
+          <MenuItem value="Online">Online</MenuItem>
+        </Select>
+      </FormControl>
 
       {selectedItems.map((item) => (
         <Box
@@ -80,9 +110,9 @@ const ReviewCart: React.FC<Props> = ({
         fullWidth
         sx={{ mt: 3 }}
         onClick={onSubmit}
-        disabled={selectedItems.length === 0}
+        disabled={loading}
       >
-        Submit Order
+        {orderPlaced ? "Add to Existing Order" : "Place Order"}
       </Button>
     </Box>
   );
