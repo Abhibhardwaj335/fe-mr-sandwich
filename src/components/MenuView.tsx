@@ -1,16 +1,26 @@
-import React from 'react';
-import { Box, Typography, Divider, Grid, Button } from '@mui/material'; // Assuming you are using Material UI
-import MenuItemCard from './ui/MenuItemCard'; // Import MenuItemCard (adjust path as needed)
+import React from "react";
+import { Box, Typography, Divider, Grid, Button, IconButton } from "@mui/material"; // Assuming you are using Material UI
+import { PlusCircle, MinusCircle } from "lucide-react";
+import MenuItemCard from "./ui/MenuItemCard"; // Import MenuItemCard (adjust path as needed)
 
+interface MenuItem {
+  id: number;
+  name: string;
+  price: number;
+  image: string;
+  subcategory: string;
+}
 
 interface MenuViewProps {
   menuItems: MenuItem[];
   onAddItem: (item: MenuItem) => void;
+  onIncrease: (id: number) => void;
+  onDecrease: (id: number) => void;
   onNext: () => void;
   showSubcategories?: boolean;
 }
 
-const MenuView: React.FC<MenuViewProps> = ({ menuItems, onAddItem, onNext, showSubcategories }) => {
+const MenuView: React.FC<MenuViewProps> = ({ menuItems, onAddItem, onIncrease, onDecrease, onNext, showSubcategories }) => {
   const grouped = showSubcategories
     ? menuItems.reduce((acc, item) => {
         acc[item.subcategory] = acc[item.subcategory] || [];
@@ -29,7 +39,13 @@ const MenuView: React.FC<MenuViewProps> = ({ menuItems, onAddItem, onNext, showS
           <Grid container spacing={2}>
             {items.map((item) => (
               <Grid item key={item.id}>
-                <MenuItemCard item={item} onAdd={() => onAddItem(item)} />
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                  <MenuItemCard item={item} onAdd={() => onAddItem(item)} />
+                  <Box display="flex" alignItems="center">
+                    <IconButton onClick={() => onDecrease(item.id)}><MinusCircle /></IconButton>
+                    <IconButton onClick={() => onIncrease(item.id)}><PlusCircle /></IconButton>
+                  </Box>
+                </Box>
               </Grid>
             ))}
           </Grid>

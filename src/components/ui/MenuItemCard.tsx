@@ -21,10 +21,12 @@ const MenuItemCard: React.FC<MenuItemProps> = ({ item, onAdd }) => {
         alt={item.name}
       />
       <CardContent>
-        <Typography variant="h6">{item.name}</Typography>
-        <Typography variant="body2" color="text.secondary">Price: ₹{item.price}</Typography>
-        <Box mt={2}>
-          <Button variant="contained" fullWidth onClick={onAdd}>Add</Button>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box>
+            <Typography variant="h6">{item.name}</Typography>
+            <Typography variant="body2" color="text.secondary">Price: ₹{item.price}</Typography>
+          </Box>
+          <Button variant="contained" onClick={onAdd}>Add</Button>
         </Box>
       </CardContent>
     </Card>
