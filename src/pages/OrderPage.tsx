@@ -100,8 +100,13 @@ const OrderPage: React.FC = () => {
       return;
     }
 
-    if (!paymentMethod || selectedItems.length === 0) {
-      alert("Please add items and select a payment method.");
+    if (selectedItems.length === 0) {
+      alert("Please add items.");
+      return;
+    }
+
+    if (!paymentMethod) {
+      alert("Please select a payment method.");
       return;
     }
 
