@@ -1,30 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { menuCategories } from "../components/data/menuItems";
-import MenuView from "../components/MenuView";
 import ReviewCart from "../components/ReviewCart";
 import CenteredFormLayout from "../components/CenteredFormLayout";
-import { ShoppingCart, MinusCircle, PlusCircle, Menu } from "lucide-react";
-import {
-  Box,
-  Button,
-  IconButton,
-  TextField,
-  Typography,
-  CircularProgress,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-  useMediaQuery,
-  useTheme,
-  Chip,
-  Badge
-} from "@mui/material";
+import { ShoppingCart } from "lucide-react";
+import { Box } from "@mui/material";
 import axios from "axios";
+
+import CategorySelector from "../components/order/CategorySelector";
+import SubcategorySection from "../components/order/SubcategorySection";
+import TableIdInput from "../components/order/TableIdInput";
+import CartButton from "../components/order/CartButton";
 
 interface CartItem {
   id: number;
@@ -44,17 +29,20 @@ const OrderPage: React.FC = () => {
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [orderPlaced, setOrderPlaced] = useState<boolean>(false);
   const [orderId, setOrderId] = useState<string>("");
-  const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
-
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   const urlTableId = new URLSearchParams(window.location.search).get("tableId") || "";
   const effectiveTableId = urlTableId || manualTableId;
 
   const activeCategory = menuCategories.find((cat) => cat.name === selectedCategory);
 
-  const totalItemsInCart = selectedItems.reduce((sum, item) => sum + item.count, 0);
+  // Group items by subcategory
+  const groupedItems = activeCategory?.items.reduce((groups, item) => {
+    if (!groups[item.subcategory]) {
+      groups[item.subcategory] = [];
+    }
+    groups[item.subcategory].push(item);
+    return groups;
+  }, {} as Record<string, typeof activeCategory.items>) || {};
 
   const handleAddItem = (item: CartItem) => {
     setSelectedItems((prev) => {
@@ -78,13 +66,6 @@ const OrderPage: React.FC = () => {
 
   const handleRemove = (id: number) =>
     setSelectedItems((prev) => prev.filter((i) => i.id !== id));
-
-  const handleSelectCategory = (category: string) => {
-    setSelectedCategory(category);
-    if (isMobile) {
-      setDrawerOpen(false);
-    }
-  };
 
   const handleSubmitOrder = async () => {
     if (!effectiveTableId) {
@@ -169,228 +150,40 @@ const OrderPage: React.FC = () => {
     }
   };
 
-  // Filter categories that have items
-  const categoriesWithItems = menuCategories.filter(cat => cat.items.length > 0);
+  const cartItemCount = selectedItems.reduce((total, item) => total + item.count, 0);
 
   return (
     <CenteredFormLayout title="Place an Order" icon={<ShoppingCart />}>
-      {!effectiveTableId ? (
-        <TextField
-          label="Enter Table ID"
-          fullWidth
-          value={manualTableId}
-          onChange={(e) => setManualTableId(e.target.value)}
-          sx={{ mb: 2 }}
-        />
-      ) : (
-        <Typography variant="h6" mt={2} mb={2}>
-          You're ordering for <strong>Table {effectiveTableId}</strong>
-        </Typography>
-      )}
+      <TableIdInput
+        effectiveTableId={effectiveTableId}
+        manualTableId={manualTableId}
+        onManualTableIdChange={setManualTableId}
+      />
 
       {view === "menu" && activeCategory && (
         <>
-          {/* Mobile View: Category Button and Cart Button */}
-          {isMobile && (
-            <Box display="flex" justifyContent="space-between" mb={2}>
-              <Button
-                variant="outlined"
-                startIcon={<Menu />}
-                onClick={() => setDrawerOpen(true)}
-              >
-                {selectedCategory}
-              </Button>
+          <CategorySelector
+            categories={menuCategories.map(cat => cat.name)}
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+          />
 
-              <Badge badgeContent={totalItemsInCart} color="primary">
-                <Button
-                  variant="contained"
-                  onClick={() => setView("cart")}
-                  startIcon={<ShoppingCart />}
-                >
-                  Cart
-                </Button>
-              </Badge>
-            </Box>
-          )}
+          {Object.keys(groupedItems).map(subcategory => (
+            <SubcategorySection
+              key={subcategory}
+              title={subcategory}
+              items={groupedItems[subcategory]}
+              selectedItems={selectedItems}
+              onAddItem={handleAddItem}
+              onIncreaseItem={handleIncrease}
+              onDecreaseItem={handleDecrease}
+            />
+          ))}
 
-          {/* Desktop View: Scrollable Category Buttons */}
-          {!isMobile && (
-            <Box
-              display="flex"
-              gap={1}
-              mt={2}
-              mb={2}
-              sx={{
-                overflowX: "auto",
-                pb: 1,
-                "&::-webkit-scrollbar": {
-                  height: "6px",
-                },
-                "&::-webkit-scrollbar-thumb": {
-                  backgroundColor: "rgba(0,0,0,0.2)",
-                  borderRadius: "10px",
-                }
-              }}
-            >
-              {categoriesWithItems.map((cat) => (
-                <Button
-                  key={cat.name}
-                  variant={cat.name === selectedCategory ? "contained" : "outlined"}
-                  onClick={() => setSelectedCategory(cat.name)}
-                  sx={{
-                    flexShrink: 0,
-                    whiteSpace: "nowrap"
-                  }}
-                >
-                  {cat.name}
-                </Button>
-              ))}
-            </Box>
-          )}
-
-          {/* Mobile: Category Drawer */}
-          <Drawer
-            anchor="left"
-            open={drawerOpen}
-            onClose={() => setDrawerOpen(false)}
-          >
-            <Box sx={{ width: 250 }} role="presentation">
-              <List>
-                <ListItem>
-                  <ListItemText primary="Categories" primaryTypographyProps={{ variant: 'h6' }} />
-                </ListItem>
-                {categoriesWithItems.map((cat) => (
-                  <ListItem
-                    key={cat.name}
-                    button
-                    onClick={() => handleSelectCategory(cat.name)}
-                    selected={cat.name === selectedCategory}
-                  >
-                    <ListItemText primary={cat.name} />
-                  </ListItem>
-                ))}
-              </List>
-            </Box>
-          </Drawer>
-
-          {/* Menu Items Display */}
-          <Box>
-            <Typography variant="h6" gutterBottom>
-              {selectedCategory}
-            </Typography>
-
-            {/* Group by subcategory */}
-            {Array.from(new Set(activeCategory.items.map(item => item.subcategory))).map(subcategory => (
-              <Box key={subcategory} mb={3}>
-                <Typography variant="subtitle1" color="text.secondary" mb={1}>
-                  {subcategory}
-                </Typography>
-
-                {activeCategory.items
-                  .filter(item => item.subcategory === subcategory)
-                  .map((item) => {
-                    const selected = selectedItems.find((i) => i.id === item.id);
-                    const count = selected ? selected.count : 0;
-
-                    return (
-                      <Box
-                        key={item.id}
-                        display="flex"
-                        alignItems="center"
-                        justifyContent="space-between"
-                        mb={1.5}
-                        p={2}
-                        border="1px solid #ddd"
-                        borderRadius={2}
-                      >
-                        <Box display="flex" alignItems="center">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            style={{
-                              width: 60,
-                              height: 60,
-                              marginRight: 16,
-                              borderRadius: 8,
-                              objectFit: "cover"
-                            }}
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "/images/placeholder.jpg";
-                            }}
-                          />
-                          <Box>
-                            <Typography>{item.name}</Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              ₹{item.price}
-                            </Typography>
-                          </Box>
-                        </Box>
-
-                        <Box display="flex" alignItems="center">
-                          {count > 0 ? (
-                            <Box display="flex" alignItems="center" border="1px solid #ddd" borderRadius={4} px={1}>
-                              <IconButton size="small" onClick={() => handleDecrease(item.id)}>
-                                <MinusCircle size={18} />
-                              </IconButton>
-                              <Typography sx={{ mx: 1 }}>{count}</Typography>
-                              <IconButton size="small" onClick={() => handleIncrease(item.id)}>
-                                <PlusCircle size={18} />
-                              </IconButton>
-                            </Box>
-                          ) : (
-                            <Button
-                              variant="outlined"
-                              size="small"
-                              onClick={() => handleAddItem(item)}
-                            >
-                              Add
-                            </Button>
-                          )}
-                        </Box>
-                      </Box>
-                    );
-                  })}
-              </Box>
-            ))}
-          </Box>
-
-          {/* Desktop View: Cart Button */}
-          {!isMobile && (
-            <Button
-              variant="contained"
-              fullWidth
-              onClick={() => setView("cart")}
-              sx={{ mt: 4 }}
-              startIcon={<ShoppingCart />}
-              disabled={selectedItems.length === 0}
-            >
-              Review Cart ({totalItemsInCart} item{totalItemsInCart !== 1 ? 's' : ''})
-            </Button>
-          )}
-
-          {/* Mobile View: Sticky Cart Button */}
-          {isMobile && selectedItems.length > 0 && (
-            <Box
-              position="fixed"
-              bottom={0}
-              left={0}
-              right={0}
-              p={2}
-              bgcolor="background.paper"
-              boxShadow="0 -2px 10px rgba(0,0,0,0.1)"
-              zIndex={1000}
-            >
-              <Button
-                variant="contained"
-                fullWidth
-                onClick={() => setView("cart")}
-                startIcon={<ShoppingCart />}
-              >
-                Review Cart ({totalItemsInCart} item{totalItemsInCart !== 1 ? 's' : ''}) -
-                ₹{selectedItems.reduce((sum, i) => sum + i.price * i.count, 0)}
-              </Button>
-            </Box>
-          )}
+          <CartButton
+            itemCount={cartItemCount}
+            onClick={() => setView("cart")}
+          />
         </>
       )}
 

@@ -9,6 +9,7 @@ import {
   Select,
   InputLabel,
   FormControl,
+  Typography,
 } from "@mui/material";
 import CenteredFormLayout from "../components/CenteredFormLayout";
 import { UserPlus } from "lucide-react";
@@ -31,8 +32,8 @@ const CustomerForm: React.FC = () => {
 
   const saveCustomerData = async () => {
     const fullPhoneNumber = `${countryCode}${localPhone}`;
-    if (!name || !localPhone || !dob) {
-      alert("❌ Please fill all fields.");
+    if (!name || !localPhone) {
+      alert("❌ Please fill all required fields.");
       return;
     }
 
@@ -94,7 +95,7 @@ const CustomerForm: React.FC = () => {
 
       <TextField
         fullWidth
-        label="Date of Birth"
+        label="Date of Birth (Optional)"
         type="date"
         margin="normal"
         variant="outlined"
@@ -102,6 +103,9 @@ const CustomerForm: React.FC = () => {
         value={dob}
         onChange={(e) => setDob(e.target.value)}
       />
+      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+        Note: Your birthday will be used only for sending special offers and birthday wishes.
+      </Typography>
 
       <Button
         onClick={saveCustomerData}
