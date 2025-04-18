@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import {
   Box,
   Typography,
@@ -8,18 +8,18 @@ import {
 } from "@mui/material";
 import { Gift } from "lucide-react";
 
-interface Reward {
-  id: string;
-  date: string;
-  points: number;
-  description: string;
-}
-
 interface RewardSummaryCardProps {
   totalPoints: number;
-  rewards: Reward[];
+  rewards: Array<{
+    id: string;
+    date: string;
+    description: string;
+    points: number;
+    status: string;
+  }>;
   showRewards: boolean;
-  setShowRewards: React.Dispatch<React.SetStateAction<boolean>>;
+  setShowRewards: (show: boolean) => void;
+  showTotalPoints?: boolean;
 }
 
 const RewardSummaryCard: React.FC<RewardSummaryCardProps> = ({
@@ -27,6 +27,7 @@ const RewardSummaryCard: React.FC<RewardSummaryCardProps> = ({
   rewards,
   showRewards,
   setShowRewards,
+  showTotalPoints = true
 }) => {
   const formatDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -46,16 +47,21 @@ const RewardSummaryCard: React.FC<RewardSummaryCardProps> = ({
           alignItems: "center",
         }}
       >
-        <Typography variant="body2" sx={{ mr: 1 }}>
-          Rewards: <strong>{totalPoints}</strong>
-        </Typography>
-        <IconButton
-          size="small"
-          color="primary"
-          onClick={() => setShowRewards(!showRewards)}
-        >
-          <Gift size={16} />
-        </IconButton>
+        {/* Only render the total points section AND gift icon if showTotalPoints is true */}
+                  {showTotalPoints && (
+                    <Box sx={{ display: "flex", alignItems: "center" }}>
+                      <Typography variant="body1">
+                        Rewards: <strong>{totalPoints}</strong>
+                      </Typography>
+                      <IconButton
+                                                      size="small"
+                                                      color="primary"
+                                                      onClick={() => setShowRewards(!showRewards)}
+                                                    >
+                                                      <Gift size={16} />
+                        </IconButton>
+                    </Box>
+                  )}
       </Box>
 
       <Collapse in={showRewards}>

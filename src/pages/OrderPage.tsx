@@ -14,11 +14,7 @@ import {
   FormControl,
   Typography,
   CircularProgress,
-  IconButton,
-  Card,
-  CardContent,
-  Collapse,
-  Divider,
+  IconButton
 } from "@mui/material";
 import CategorySelector from "../components/order/CategorySelector";
 import SubcategorySection from "../components/order/SubcategorySection";
@@ -91,7 +87,7 @@ const OrderPage: React.FC = () => {
   const customerPhone = `${countryCode}${localPhone}`;
 
   // Add debounce utility
-  const useDebounce = (value, delay) => {
+  const useDebounce = (value: string, delay: number) => {
     const [debouncedValue, setDebouncedValue] = useState(value);
 
     useEffect(() => {
@@ -129,7 +125,7 @@ const OrderPage: React.FC = () => {
         `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/rewards?id=${localPhone}`);
 
       if (response.data && response.data.length > 0) {
-        const rewardsArray = response.data.map((reward) => ({
+        const rewardsArray = response.data.map((reward: any) => ({
           id: reward.SK,
           date: reward.createdAt,
           points: reward.points,
@@ -137,7 +133,7 @@ const OrderPage: React.FC = () => {
           status: reward.status,
         }));
 
-        const totalPoints = rewardsArray.reduce((sum, r) => sum + (r.points || 0), 0);
+        const totalPoints = rewardsArray.reduce((sum: number, r: any) => sum + (r.points || 0), 0);
 
         setCustomerData({
           id: response.data[0].PK,
@@ -304,17 +300,6 @@ const OrderPage: React.FC = () => {
 
   const cartItemCount = selectedItems.reduce((total, item) => total + item.count, 0);
 
-  // Format date for display
-  const formatDate = (dateString: string) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-IN", {
-      day: "numeric",
-      month: "short",
-      year: "numeric"
-    });
-  };
-
   return (
     <CenteredFormLayout title="Place an Order" icon={<ShoppingCart />}>
       <TableIdInput
@@ -436,6 +421,7 @@ const OrderPage: React.FC = () => {
                               rewards={customerData.rewards}
                               showRewards={showRewards}
                               setShowRewards={setShowRewards}
+                              showTotalPoints={false}
                 />
               )}
 
@@ -478,7 +464,6 @@ const OrderPage: React.FC = () => {
           setPaymentMethod={setPaymentMethod}
           loading={loading}
           orderPlaced={orderPlaced}
-          customerName={customerName}
           rewardPoints={customerData?.totalRewardPoints}
         />
       )}

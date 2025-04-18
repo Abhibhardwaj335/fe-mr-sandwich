@@ -32,7 +32,6 @@ interface Props {
   setPaymentMethod: (value: string) => void;
   loading: boolean;
   orderPlaced: boolean;
-  customerName?: string;
   rewardPoints?: number;
 }
 
@@ -47,7 +46,6 @@ const ReviewCart: React.FC<Props> = ({
   setPaymentMethod,
   loading,
   orderPlaced,
-  customerName,
   rewardPoints,
 }) => {
   const total = selectedItems
