@@ -9,8 +9,9 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Chip,
 } from "@mui/material";
-import { PlusCircle, MinusCircle, XCircle } from "lucide-react";
+import { PlusCircle, MinusCircle, XCircle, Gift } from "lucide-react";
 
 interface CartItem {
   name: string;
@@ -32,6 +33,7 @@ interface Props {
   loading: boolean;
   orderPlaced: boolean;
   customerName?: string;
+  rewardPoints?: number;
 }
 
 const ReviewCart: React.FC<Props> = ({
@@ -46,6 +48,7 @@ const ReviewCart: React.FC<Props> = ({
   loading,
   orderPlaced,
   customerName,
+  rewardPoints,
 }) => {
   const total = selectedItems
     .reduce((sum, item) => sum + item.price * item.count, 0)
@@ -53,6 +56,20 @@ const ReviewCart: React.FC<Props> = ({
 
   return (
     <Box>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+        {rewardPoints !== undefined && (
+          <Chip
+            icon={<Gift size={16} />}
+            label={`${rewardPoints} points`}
+            color="primary"
+            variant="outlined"
+            size="small"
+          />
+        )}
+      </Box>
+
+      <Divider sx={{ mb: 2 }} />
+
       <Button variant="outlined" onClick={onBack} sx={{ mb: 2 }}>
         Back to Menu
       </Button>
@@ -66,6 +83,10 @@ const ReviewCart: React.FC<Props> = ({
         >
           <MenuItem value="Cash">Cash</MenuItem>
           <MenuItem value="Online">Online</MenuItem>
+
+          {rewardPoints && rewardPoints >= 100 && (
+            <MenuItem value="Rewards">Use Reward Points (100 pts = ₹10 off)</MenuItem>
+          )}
         </Select>
       </FormControl>
 
@@ -108,6 +129,15 @@ const ReviewCart: React.FC<Props> = ({
       <Typography variant="h6" mt={2}>
         Total: ₹{total}
       </Typography>
+
+      {paymentMethod === "Rewards" && rewardPoints && rewardPoints >= 100 && (
+        <Box sx={{ mt: 1, mb: 2, p: 1, bgcolor: "#f0f7ff", borderRadius: 1 }}>
+          <Typography variant="body2">
+            You will use {Math.min(rewardPoints, Math.floor(parseFloat(total) * 10))} reward points
+            for a discount of ₹{Math.min(rewardPoints / 10, parseFloat(total)).toFixed(2)}
+          </Typography>
+        </Box>
+      )}
 
       <Button
         variant="contained"

@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { menuCategories } from "../components/data/menuItems";
 import ReviewCart from "../components/ReviewCart";
 import CenteredFormLayout from "../components/CenteredFormLayout";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Search, Gift } from "lucide-react";
 import axios from "axios";
 import {
   Box,
@@ -13,11 +13,18 @@ import {
   InputLabel,
   FormControl,
   Typography,
+  CircularProgress,
+  IconButton,
+  Card,
+  CardContent,
+  Collapse,
+  Divider,
 } from "@mui/material";
 import CategorySelector from "../components/order/CategorySelector";
 import SubcategorySection from "../components/order/SubcategorySection";
 import TableIdInput from "../components/order/TableIdInput";
 import CartButton from "../components/order/CartButton";
+import RewardSummaryCard from "../components/order/RewardSummaryCard";
 
 interface MenuItem {
   name: string;
@@ -28,6 +35,23 @@ interface MenuItem {
 
 interface CartItem extends MenuItem {
   count: number;
+}
+
+interface CustomerReward {
+  id: string;
+  date: string;
+  description: string;
+  points: number;
+  status: string;
+}
+
+interface CustomerData {
+  id: string;
+  name: string;
+  phone: string;
+  dob?: string;
+  totalRewardPoints: number;
+  rewards: CustomerReward[];
 }
 
 const countryCodes = [
@@ -43,6 +67,7 @@ const OrderPage: React.FC = () => {
   const [name, setName] = useState("");
   const [countryCode, setCountryCode] = useState("+91");
   const [localPhone, setLocalPhone] = useState("");
+  const [dob, setDob] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>(menuCategories[0].name);
   const [selectedItems, setSelectedItems] = useState<CartItem[]>([]);
   const [view, setView] = useState<"menu" | "cart">("menu");
@@ -52,6 +77,9 @@ const OrderPage: React.FC = () => {
   const [orderPlaced, setOrderPlaced] = useState<boolean>(false);
   const [orderId, setOrderId] = useState<string>("");
   const [customerInfoSet, setCustomerInfoSet] = useState<boolean>(false);
+  const [customerData, setCustomerData] = useState<CustomerData | null>(null);
+  const [fetchingCustomer, setFetchingCustomer] = useState<boolean>(false);
+  const [showRewards, setShowRewards] = useState<boolean>(false);
 
   const urlTableId = new URLSearchParams(window.location.search).get("tableId") || "";
   const effectiveTableId = urlTableId || manualTableId;
@@ -61,6 +89,77 @@ const OrderPage: React.FC = () => {
   // Customer information
   const customerName = name;
   const customerPhone = `${countryCode}${localPhone}`;
+
+  // Add debounce utility
+  const useDebounce = (value, delay) => {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, delay);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value, delay]);
+
+    return debouncedValue;
+  };
+
+  // Then use it in your component
+  const debouncedPhone = useDebounce(localPhone, 500); // 500ms delay
+
+  useEffect(() => {
+    if (debouncedPhone && debouncedPhone.length >= 6) {
+      fetchCustomerData();
+    }
+  }, [debouncedPhone, countryCode]);
+
+  // Fetch customer data by phone number
+  const fetchCustomerData = async () => {
+    if (!localPhone) {
+      return;
+    }
+
+    setFetchingCustomer(true);
+
+    try {
+      const response = await axios.get(
+        `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/rewards?id=${localPhone}`);
+
+      if (response.data && response.data.length > 0) {
+        const rewardsArray = response.data.map((reward) => ({
+          id: reward.SK,
+          date: reward.createdAt,
+          points: reward.points,
+          description: reward.rewardType,
+          status: reward.status,
+        }));
+
+        const totalPoints = rewardsArray.reduce((sum, r) => sum + (r.points || 0), 0);
+
+        setCustomerData({
+          id: response.data[0].PK,
+          name: response.data[0].name,
+          phone: response.data[0].phoneNumber,
+          dob: response.data[0].dob,
+          totalRewardPoints: totalPoints,
+          rewards: rewardsArray,
+        });
+
+        setName(response.data[0].name || "");
+        setDob(response.data[0].dob || "");
+      } else {
+        setCustomerData(null);
+      }
+    } catch (err) {
+      console.error("Error fetching customer data:", err);
+      setCustomerData(null);
+    } finally {
+      setFetchingCustomer(false);
+    }
+  };
 
   // Function to save customer info
   const handleSaveCustomerInfo = () => {
@@ -122,8 +221,8 @@ const OrderPage: React.FC = () => {
     setLoading(true);
     const orderPayload = {
       tableId: effectiveTableId,
-      customerName,
-      customerPhone,
+      name: customerName,
+      phoneNumber: customerPhone,
       items: selectedItems.map(({ name, count, price }) => ({
         name, count, price,
       })),
@@ -143,6 +242,11 @@ const OrderPage: React.FC = () => {
       alert("Order placed successfully!");
       setSelectedItems([]);
       setView("menu");
+
+      // Refresh customer data to get updated rewards
+      if (customerData) {
+        fetchCustomerData();
+      }
     } catch (err) {
       console.error("Error placing order:", err);
       alert("Failed to place order");
@@ -185,6 +289,11 @@ const OrderPage: React.FC = () => {
       alert("Items added to the existing order!");
       setSelectedItems([]);
       setView("menu");
+
+      // Refresh customer data to get updated rewards
+      if (customerData) {
+        fetchCustomerData();
+      }
     } catch (err) {
       console.error("Error adding items to existing order:", err);
       alert("Failed to add items to existing order");
@@ -194,6 +303,17 @@ const OrderPage: React.FC = () => {
   };
 
   const cartItemCount = selectedItems.reduce((total, item) => total + item.count, 0);
+
+  // Format date for display
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-IN", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    });
+  };
 
   return (
     <CenteredFormLayout title="Place an Order" icon={<ShoppingCart />}>
@@ -217,6 +337,7 @@ const OrderPage: React.FC = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
               />
+
               <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
                 <FormControl fullWidth sx={{ flex: 1 }}>
                   <InputLabel id="country-code-label">Code</InputLabel>
@@ -241,8 +362,39 @@ const OrderPage: React.FC = () => {
                   value={localPhone}
                   onChange={(e) => setLocalPhone(e.target.value)}
                   sx={{ flex: 2 }}
+                  InputProps={{
+                    endAdornment: (
+                      <IconButton
+                        onClick={fetchCustomerData}
+                        disabled={fetchingCustomer || !localPhone}
+                      >
+                        {fetchingCustomer ? <CircularProgress size={20} /> : <Search />}
+                      </IconButton>
+                    )
+                  }}
                 />
               </Box>
+
+              <TextField
+                fullWidth
+                label="Date of Birth (Optional)"
+                type="date"
+                margin="normal"
+                variant="outlined"
+                value={dob}
+                onChange={(e) => setDob(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+              />
+
+              {customerData && (
+                <RewardSummaryCard
+            totalPoints={customerData.totalRewardPoints}
+                        rewards={customerData.rewards}
+                        showRewards={showRewards}
+                        setShowRewards={setShowRewards}
+                />
+              )}
+
               <Button
                 variant="contained"
                 fullWidth
@@ -254,6 +406,39 @@ const OrderPage: React.FC = () => {
             </Box>
           ) : (
             <>
+              {/* ✅ Minified Reward Info in top bar */}
+              {customerData && (
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "flex-end",
+                    alignItems: "center",
+                    mb: 2,
+                  }}
+                >
+                  <Typography variant="body2" sx={{ mr: 1 }}>
+                    Rewards: <strong>{customerData.totalRewardPoints}</strong>
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={() => setShowRewards(!showRewards)}
+                  >
+                    <Gift size={16} />
+                  </IconButton>
+                </Box>
+              )}
+
+              {/* ✅ Reward Summary (collapsible) */}
+              {customerData && showRewards && (
+                <RewardSummaryCard
+                  totalPoints={customerData.totalRewardPoints}
+                              rewards={customerData.rewards}
+                              showRewards={showRewards}
+                              setShowRewards={setShowRewards}
+                />
+              )}
+
               <CategorySelector
                 categories={menuCategories.map(cat => cat.name)}
                 selectedCategory={selectedCategory}
@@ -294,6 +479,7 @@ const OrderPage: React.FC = () => {
           loading={loading}
           orderPlaced={orderPlaced}
           customerName={customerName}
+          rewardPoints={customerData?.totalRewardPoints}
         />
       )}
     </CenteredFormLayout>
