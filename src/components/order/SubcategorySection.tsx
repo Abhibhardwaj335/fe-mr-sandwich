@@ -3,20 +3,23 @@ import { Box, Typography } from "@mui/material";
 import MenuItem from "./MenuItem";
 
 interface Item {
-  id: number;
   name: string;
   price: number;
   image: string;
   subcategory: string;
 }
 
+interface CartItem extends Item {
+  count: number;
+}
+
 interface SubcategorySectionProps {
   title: string;
   items: Item[];
-  selectedItems: { id: number; count: number }[];
-  onAddItem: (item: Item) => void;
-  onIncreaseItem: (id: number) => void;
-  onDecreaseItem: (id: number) => void;
+  selectedItems: CartItem[];
+  onAddItem: (item: Item & { count?: number }) => void;
+  onIncreaseItem: (name: string) => void;
+  onDecreaseItem: (name: string) => void;
 }
 
 const SubcategorySection: React.FC<SubcategorySectionProps> = ({
@@ -42,20 +45,19 @@ const SubcategorySection: React.FC<SubcategorySectionProps> = ({
       </Typography>
 
       {items.map((item) => {
-        const selected = selectedItems.find((i) => i.id === item.id);
+        const selected = selectedItems.find((i) => i.name === item.name);
         const count = selected ? selected.count : 0;
 
         return (
           <MenuItem
-            key={item.id}
-            id={item.id}
+            key={item.name}
             name={item.name}
             price={item.price}
             image={item.image}
             count={count}
             onAdd={() => onAddItem(item)}
-            onIncrease={() => onIncreaseItem(item.id)}
-            onDecrease={() => onDecreaseItem(item.id)}
+            onIncrease={() => onIncreaseItem(item.name)}
+            onDecrease={() => onDecreaseItem(item.name)}
           />
         );
       })}
