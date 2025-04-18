@@ -3,7 +3,6 @@ import { menuCategories } from "../components/data/menuItems";
 import ReviewCart from "../components/ReviewCart";
 import CenteredFormLayout from "../components/CenteredFormLayout";
 import { ShoppingCart } from "lucide-react";
-import { Box } from "@mui/material";
 import axios from "axios";
 
 import CategorySelector from "../components/order/CategorySelector";
@@ -11,12 +10,14 @@ import SubcategorySection from "../components/order/SubcategorySection";
 import TableIdInput from "../components/order/TableIdInput";
 import CartButton from "../components/order/CartButton";
 
-interface CartItem {
-  id: number;
+interface MenuItem {
   name: string;
   price: number;
   image: string;
   subcategory: string;
+}
+
+interface CartItem extends MenuItem {
   count: number;
 }
 
@@ -44,28 +45,28 @@ const OrderPage: React.FC = () => {
     return groups;
   }, {} as Record<string, typeof activeCategory.items>) || {};
 
-  const handleAddItem = (item: CartItem) => {
+  const handleAddItem = (item: MenuItem) => {
     setSelectedItems((prev) => {
-      const existing = prev.find((i) => i.id === item.id);
+      const existing = prev.find((i) => i.name === item.name);
       if (existing) return prev;
       return [...prev, { ...item, count: 1 }];
     });
   };
 
-  const handleIncrease = (id: number) =>
+  const handleIncrease = (name: string) =>
     setSelectedItems((prev) =>
-      prev.map((i) => (i.id === id ? { ...i, count: i.count + 1 } : i))
+      prev.map((i) => (i.name === name ? { ...i, count: i.count + 1 } : i))
     );
 
-  const handleDecrease = (id: number) =>
+  const handleDecrease = (name: string) =>
     setSelectedItems((prev) =>
       prev.map((i) =>
-        i.id === id && i.count > 1 ? { ...i, count: i.count - 1 } : i
+        i.name === name && i.count > 1 ? { ...i, count: i.count - 1 } : i
       )
     );
 
-  const handleRemove = (id: number) =>
-    setSelectedItems((prev) => prev.filter((i) => i.id !== id));
+  const handleRemove = (name: string) =>
+    setSelectedItems((prev) => prev.filter((i) => i.name !== name));
 
   const handleSubmitOrder = async () => {
     if (!effectiveTableId) {
@@ -81,8 +82,8 @@ const OrderPage: React.FC = () => {
     setLoading(true);
     const orderPayload = {
       tableId: effectiveTableId,
-      items: selectedItems.map(({ id, name, count, price }) => ({
-        id, name, count, price,
+      items: selectedItems.map(({ name, count, price }) => ({
+        name, count, price,
       })),
       paymentDetails: paymentMethod,
       total: selectedItems.reduce((sum, i) => sum + i.price * i.count, 0),

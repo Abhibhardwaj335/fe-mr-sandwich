@@ -13,17 +13,18 @@ import {
 import { PlusCircle, MinusCircle, XCircle } from "lucide-react";
 
 interface CartItem {
-  id: number;
   name: string;
   price: number;
   count: number;
+  image: string;
+  subcategory: string;
 }
 
 interface Props {
   selectedItems: CartItem[];
-  onRemove: (id: number) => void;
-  onIncrease: (id: number) => void;
-  onDecrease: (id: number) => void;
+  onRemove: (name: string) => void;
+  onIncrease: (name: string) => void;
+  onDecrease: (name: string) => void;
   onSubmit: () => void;
   onBack: () => void;
   paymentMethod: string;
@@ -73,7 +74,7 @@ const ReviewCart: React.FC<Props> = ({
 
       {selectedItems.map((item) => (
         <Box
-          key={item.id}
+          key={item.name}
           display="flex"
           justifyContent="space-between"
           alignItems="center"
@@ -87,14 +88,14 @@ const ReviewCart: React.FC<Props> = ({
           </Typography>
 
           <Box display="flex" alignItems="center">
-            <IconButton onClick={() => onDecrease(item.id)}>
+            <IconButton onClick={() => onDecrease(item.name)}>
               <MinusCircle />
             </IconButton>
             <Typography mx={1}>{item.count}</Typography>
-            <IconButton onClick={() => onIncrease(item.id)}>
+            <IconButton onClick={() => onIncrease(item.name)}>
               <PlusCircle />
             </IconButton>
-            <IconButton onClick={() => onRemove(item.id)} color="secondary">
+            <IconButton onClick={() => onRemove(item.name)} color="secondary">
               <XCircle />
             </IconButton>
           </Box>
