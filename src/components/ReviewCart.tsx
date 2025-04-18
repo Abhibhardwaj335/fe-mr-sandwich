@@ -31,6 +31,7 @@ interface Props {
   setPaymentMethod: (value: string) => void;
   loading: boolean;
   orderPlaced: boolean;
+  customerName?: string;
 }
 
 const ReviewCart: React.FC<Props> = ({
@@ -44,6 +45,7 @@ const ReviewCart: React.FC<Props> = ({
   setPaymentMethod,
   loading,
   orderPlaced,
+  customerName,
 }) => {
   const total = selectedItems
     .reduce((sum, item) => sum + item.price * item.count, 0)
@@ -51,11 +53,6 @@ const ReviewCart: React.FC<Props> = ({
 
   return (
     <Box>
-      <Typography variant="h4" gutterBottom>
-        Review Your Cart
-      </Typography>
-      <Divider sx={{ mb: 2 }} />
-
       <Button variant="outlined" onClick={onBack} sx={{ mb: 2 }}>
         Back to Menu
       </Button>
@@ -72,35 +69,41 @@ const ReviewCart: React.FC<Props> = ({
         </Select>
       </FormControl>
 
-      {selectedItems.map((item) => (
-        <Box
-          key={item.name}
-          display="flex"
-          justifyContent="space-between"
-          alignItems="center"
-          mb={2}
-          p={1}
-          border="1px solid #ddd"
-          borderRadius={2}
-        >
-          <Typography>
-            {item.name} - ₹{item.price}
-          </Typography>
+      {selectedItems.length === 0 ? (
+        <Typography variant="body1" sx={{ textAlign: "center", my: 4 }}>
+          Your cart is empty. Please add some items.
+        </Typography>
+      ) : (
+        selectedItems.map((item) => (
+          <Box
+            key={item.name}
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+            mb={2}
+            p={1}
+            border="1px solid #ddd"
+            borderRadius={2}
+          >
+            <Typography>
+              {item.name} - ₹{item.price}
+            </Typography>
 
-          <Box display="flex" alignItems="center">
-            <IconButton onClick={() => onDecrease(item.name)}>
-              <MinusCircle />
-            </IconButton>
-            <Typography mx={1}>{item.count}</Typography>
-            <IconButton onClick={() => onIncrease(item.name)}>
-              <PlusCircle />
-            </IconButton>
-            <IconButton onClick={() => onRemove(item.name)} color="secondary">
-              <XCircle />
-            </IconButton>
+            <Box display="flex" alignItems="center">
+              <IconButton onClick={() => onDecrease(item.name)}>
+                <MinusCircle />
+              </IconButton>
+              <Typography mx={1}>{item.count}</Typography>
+              <IconButton onClick={() => onIncrease(item.name)}>
+                <PlusCircle />
+              </IconButton>
+              <IconButton onClick={() => onRemove(item.name)} color="secondary">
+                <XCircle />
+              </IconButton>
+            </Box>
           </Box>
-        </Box>
-      ))}
+        ))
+      )}
 
       <Typography variant="h6" mt={2}>
         Total: ₹{total}
@@ -111,9 +114,9 @@ const ReviewCart: React.FC<Props> = ({
         fullWidth
         sx={{ mt: 3 }}
         onClick={onSubmit}
-        disabled={loading}
+        disabled={loading || selectedItems.length === 0}
       >
-        {orderPlaced ? "Add to Existing Order" : "Place Order"}
+        {loading ? "Processing..." : orderPlaced ? "Add to Existing Order" : "Place Order"}
       </Button>
     </Box>
   );
