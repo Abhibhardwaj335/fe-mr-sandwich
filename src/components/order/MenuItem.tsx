@@ -65,7 +65,7 @@ const MenuItem: React.FC<MenuItemProps> = ({
           }}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            target.src = "../src/images/Creamy_Oreo_Milkshake.jpg";
+            target.src = "/images/Creamy_Oreo_Milkshake.jpg";
           }}
         />
         <Box>

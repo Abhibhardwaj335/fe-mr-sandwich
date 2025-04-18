@@ -14,7 +14,7 @@ export const menuCategories: MenuCategory[] = [
   {
     name: "Beverages",
     items: [
-      { name: "Vanilla Shake", price: 79, subcategory: "Cream Shakes", image: "../../images/Creamy_Oreo_Milkshake.jpg" },
+      { name: "Vanilla Shake", price: 79, subcategory: "Cream Shakes", image: "/images/Creamy_Oreo_Milkshake.jpg" },
       { name: "Strawberry Shake", price: 79, subcategory: "Cream Shakes", image: "/images/beverages/strawberry-shake.jpg" },
       { name: "Pista Shake", price: 89, subcategory: "Cream Shakes", image: "/images/beverages/pista-shake.jpg" },
       { name: "Butterscotch Shake", price: 89, subcategory: "Cream Shakes", image: "/images/beverages/butterscotch-shake.jpg" },
