@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Box,
   Typography,
@@ -26,13 +26,14 @@ interface Props {
   onRemove: (name: string) => void;
   onIncrease: (name: string) => void;
   onDecrease: (name: string) => void;
-  onSubmit: () => void;
+  onSubmit: (adjustedTotal: number) => void; // UPDATED to accept adjusted total
   onBack: () => void;
   paymentMethod: string;
   setPaymentMethod: (value: string) => void;
   loading: boolean;
   orderPlaced: boolean;
   rewardPoints?: number;
+  setTotalAfterDiscount: (total: number) => void; // Add this line
 }
 
 const ReviewCart: React.FC<Props> = ({
@@ -47,10 +48,27 @@ const ReviewCart: React.FC<Props> = ({
   loading,
   orderPlaced,
   rewardPoints,
+  setTotalAfterDiscount, // Receiving setTotalAfterDiscount as prop
 }) => {
-  const total = selectedItems
-    .reduce((sum, item) => sum + item.price * item.count, 0)
-    .toFixed(2);
+  const total = selectedItems.reduce((sum, item) => sum + item.price * item.count, 0);
+  const rewardDiscount = paymentMethod === "Rewards" && rewardPoints && rewardPoints >= 100
+    ? Math.min(rewardPoints / 10, total)
+    : 0;
+
+  const totalAfterRewards = (total - rewardDiscount).toFixed(2);
+
+  const handleSubmit = () => {
+    onSubmit(parseFloat(totalAfterRewards)); // Pass adjusted total to onSubmit
+  };
+
+  // Update totalAfterDiscount in the parent component
+  useEffect(() => {
+    if (paymentMethod === "Rewards") {
+      setTotalAfterDiscount(parseFloat(totalAfterRewards));
+    } else {
+      setTotalAfterDiscount(parseFloat(total.toFixed(2)));
+    }
+  }, [paymentMethod, totalAfterRewards, total, setTotalAfterDiscount]);
 
   return (
     <Box>
@@ -81,7 +99,6 @@ const ReviewCart: React.FC<Props> = ({
         >
           <MenuItem value="Cash">Cash</MenuItem>
           <MenuItem value="Online">Online</MenuItem>
-
           {rewardPoints && rewardPoints >= 100 && (
             <MenuItem value="Rewards">Use Reward Points (100 pts = ₹10 off)</MenuItem>
           )}
@@ -125,14 +142,17 @@ const ReviewCart: React.FC<Props> = ({
       )}
 
       <Typography variant="h6" mt={2}>
-        Total: ₹{total}
+        Total: ₹{total.toFixed(2)}
       </Typography>
 
       {paymentMethod === "Rewards" && rewardPoints && rewardPoints >= 100 && (
         <Box sx={{ mt: 1, mb: 2, p: 1, bgcolor: "#f0f7ff", borderRadius: 1 }}>
           <Typography variant="body2">
-            You will use {Math.min(rewardPoints, Math.floor(parseFloat(total) * 10))} reward points
-            for a discount of ₹{Math.min(rewardPoints / 10, parseFloat(total)).toFixed(2)}
+            Using {Math.min(rewardPoints, Math.floor(total * 10))} reward points
+            for a discount of ₹{rewardDiscount.toFixed(2)}
+          </Typography>
+          <Typography variant="subtitle1" fontWeight="bold" mt={1}>
+            Total after rewards: ₹{totalAfterRewards}
           </Typography>
         </Box>
       )}
@@ -141,7 +161,7 @@ const ReviewCart: React.FC<Props> = ({
         variant="contained"
         fullWidth
         sx={{ mt: 3 }}
-        onClick={onSubmit}
+        onClick={handleSubmit}
         disabled={loading || selectedItems.length === 0}
       >
         {loading ? "Processing..." : orderPlaced ? "Add to Existing Order" : "Place Order"}

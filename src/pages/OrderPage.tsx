@@ -14,13 +14,14 @@ import {
   FormControl,
   Typography,
   CircularProgress,
-  IconButton
+  IconButton,
+  Drawer
 } from "@mui/material";
 import CategorySelector from "../components/order/CategorySelector";
 import SubcategorySection from "../components/order/SubcategorySection";
 import TableIdInput from "../components/order/TableIdInput";
-import CartButton from "../components/order/CartButton";
 import RewardSummaryCard from "../components/order/RewardSummaryCard";
+import FloatingCartButton from "../components/order/FloatingCartButton";
 
 interface MenuItem {
   name: string;
@@ -66,16 +67,18 @@ const OrderPage: React.FC = () => {
   const [dob, setDob] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>(menuCategories[0].name);
   const [selectedItems, setSelectedItems] = useState<CartItem[]>([]);
-  const [view, setView] = useState<"menu" | "cart">("menu");
+  const [cartDrawerOpen, setCartDrawerOpen] = useState<boolean>(false);
   const [manualTableId, setManualTableId] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [paymentMethod, setPaymentMethod] = useState<string>("");
   const [orderPlaced, setOrderPlaced] = useState<boolean>(false);
   const [orderId, setOrderId] = useState<string>("");
+  const [tableId, setTableId] = useState<string>("");
   const [customerInfoSet, setCustomerInfoSet] = useState<boolean>(false);
   const [customerData, setCustomerData] = useState<CustomerData | null>(null);
   const [fetchingCustomer, setFetchingCustomer] = useState<boolean>(false);
   const [showRewards, setShowRewards] = useState<boolean>(false);
+  const [totalAfterDiscount, setTotalAfterDiscount] = useState<number>(0);
 
   const urlTableId = new URLSearchParams(window.location.search).get("tableId") || "";
   const effectiveTableId = urlTableId || manualTableId;
@@ -198,6 +201,36 @@ const OrderPage: React.FC = () => {
   const handleRemove = (name: string) =>
     setSelectedItems((prev) => prev.filter((i) => i.name !== name));
 
+  // Function to send WhatsApp notification to admin
+  const sendAdminWhatsAppNotification = async (orderData: any) => {
+    try {
+      // Create a payload that matches your backend API expectations
+      const url = `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/whatsapp?id=admin`;
+
+      // Determine which template to use based on whether it's a new order or update
+      const templateName = orderPlaced ? "order_update" : "new_order";
+
+      // Calculate order total and item count
+      const orderTotal = orderData.total.toFixed(2);
+      const formattedItems = orderData.items.map((item: CartItem) =>
+        `${item.name} x${item.count} (${item.price.toFixed(2)})`
+      ).join(", ");
+
+      // Create appropriate payload based on template
+      const payload: any = {
+        templateName: templateName,
+        tableId: orderData.tableId,
+        orderTotal: orderTotal,
+        items: formattedItems
+      };
+
+      await axios.post(url, payload);
+      console.log("✅ Admin notification sent successfully");
+    } catch (err) {
+      console.error("❌ Error sending admin notification:", err);
+    }
+  };
+
   const handleSubmitOrder = async () => {
     if (!customerName || !customerPhone) {
       alert("Please enter your name and phone number.");
@@ -209,11 +242,16 @@ const OrderPage: React.FC = () => {
       return;
     }
 
-    if (!paymentMethod || selectedItems.length === 0) {
-      alert("Please add items and select a payment method.");
+    if (selectedItems.length === 0) {
+      alert("Please add items");
       return;
     }
 
+    if (!paymentMethod) {
+      alert("Please select a payment method.");
+      return;
+    }
+    const orderTotal = totalAfterDiscount || selectedItems.reduce((sum, i) => sum + i.price * i.count, 0);
     setLoading(true);
     const orderPayload = {
       tableId: effectiveTableId,
@@ -223,7 +261,7 @@ const OrderPage: React.FC = () => {
         name, count, price,
       })),
       paymentDetails: paymentMethod,
-      total: selectedItems.reduce((sum, i) => sum + i.price * i.count, 0),
+      total: orderTotal,
       timestamp: new Date().toISOString(),
     };
 
@@ -234,10 +272,15 @@ const OrderPage: React.FC = () => {
       );
 
       setOrderId(response.data.orderId);
+      setTableId(effectiveTableId);
       setOrderPlaced(true);
+
       alert("Order placed successfully!");
       setSelectedItems([]);
-      setView("menu");
+      setCartDrawerOpen(false);
+
+      // Send WhatsApp notification to admin
+      await sendAdminWhatsAppNotification(orderPayload);
 
       // Refresh customer data to get updated rewards
       if (customerData) {
@@ -270,21 +313,26 @@ const OrderPage: React.FC = () => {
     setLoading(true);
 
     const orderPayload = {
+      tableId: tableId,
       items: selectedItems,
       paymentDetails: paymentMethod,
       total: selectedItems.reduce((sum, i) => sum + i.price * i.count, 0),
     };
 
     try {
-      await axios.put(
+      const orderUpdateResponse = await axios.put(
         `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/orders?id=${orderId}`,
         orderPayload
       );
 
+      // Send admin notification for order update
+      orderPayload.total=orderUpdateResponse.data.totalAmount;
+      await sendAdminWhatsAppNotification(orderPayload);
+
       setOrderPlaced(true);
       alert("Items added to the existing order!");
       setSelectedItems([]);
-      setView("menu");
+      setCartDrawerOpen(false);
 
       // Refresh customer data to get updated rewards
       if (customerData) {
@@ -310,163 +358,193 @@ const OrderPage: React.FC = () => {
         customerInfoSet={customerInfoSet}
       />
 
-      {view === "menu" && activeCategory && (
-        <>
-          {!customerInfoSet ? (
-            <Box sx={{ mt: 2 }}>
-              <TextField
-                fullWidth
-                label="Name"
-                margin="normal"
-                variant="outlined"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
+      {!customerInfoSet ? (
+        <Box sx={{ mt: 2 }}>
+          <TextField
+            fullWidth
+            label="Name"
+            margin="normal"
+            variant="outlined"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
 
-              <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
-                <FormControl fullWidth sx={{ flex: 1 }}>
-                  <InputLabel id="country-code-label">Code</InputLabel>
-                  <Select
-                    labelId="country-code-label"
-                    value={countryCode}
-                    label="Code"
-                    onChange={(e) => setCountryCode(e.target.value as string)}
-                  >
-                    {countryCodes.map((item) => (
-                      <MenuItem key={item.code} value={item.code}>
-                        {item.code}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <TextField
-                  fullWidth
-                  label="Phone Number"
-                  variant="outlined"
-                  value={localPhone}
-                  onChange={(e) => setLocalPhone(e.target.value)}
-                  sx={{ flex: 2 }}
-                  InputProps={{
-                    endAdornment: (
-                      <IconButton
-                        onClick={fetchCustomerData}
-                        disabled={fetchingCustomer || !localPhone}
-                      >
-                        {fetchingCustomer ? <CircularProgress size={20} /> : <Search />}
-                      </IconButton>
-                    )
-                  }}
-                />
-              </Box>
-
-              <TextField
-                fullWidth
-                label="Date of Birth (Optional)"
-                type="date"
-                margin="normal"
-                variant="outlined"
-                value={dob}
-                onChange={(e) => setDob(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-              />
-
-              {customerData && (
-                <RewardSummaryCard
-            totalPoints={customerData.totalRewardPoints}
-                        rewards={customerData.rewards}
-                        showRewards={showRewards}
-                        setShowRewards={setShowRewards}
-                />
-              )}
-
-              <Button
-                variant="contained"
-                fullWidth
-                sx={{ mt: 2 }}
-                onClick={handleSaveCustomerInfo}
+          <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
+            <FormControl fullWidth sx={{ flex: 1 }}>
+              <InputLabel id="country-code-label">Code</InputLabel>
+              <Select
+                labelId="country-code-label"
+                value={countryCode}
+                label="Code"
+                onChange={(e) => setCountryCode(e.target.value as string)}
               >
-                Continue
-              </Button>
-            </Box>
-          ) : (
-            <>
-              {/* ✅ Minified Reward Info in top bar */}
-              {customerData && (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "flex-end",
-                    alignItems: "center",
-                    mb: 2,
-                  }}
-                >
-                  <Typography variant="body2" sx={{ mr: 1 }}>
-                    Rewards: <strong>{customerData.totalRewardPoints}</strong>
-                  </Typography>
+                {countryCodes.map((item) => (
+                  <MenuItem key={item.code} value={item.code}>
+                    {item.code}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+
+            <TextField
+              fullWidth
+              label="Phone Number"
+              variant="outlined"
+              value={localPhone}
+              onChange={(e) => setLocalPhone(e.target.value)}
+              sx={{ flex: 2 }}
+              InputProps={{
+                endAdornment: (
                   <IconButton
-                    size="small"
-                    color="primary"
-                    onClick={() => setShowRewards(!showRewards)}
+                    onClick={fetchCustomerData}
+                    disabled={fetchingCustomer || !localPhone}
                   >
-                    <Gift size={16} />
+                    {fetchingCustomer ? <CircularProgress size={20} /> : <Search />}
                   </IconButton>
-                </Box>
-              )}
+                )
+              }}
+            />
+          </Box>
+          {/* Loading message outside the flex container */}
+            {fetchingCustomer && (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ mt: 1, textAlign: "center", fontStyle: 'italic' }}
+              >
+                Please wait while we fetch 🔍 your rewards 🎁 summary to serve you better ✨
+              </Typography>
+            )}
+          <TextField
+            fullWidth
+            label="Date of Birth (Optional)"
+            type="date"
+            margin="normal"
+            variant="outlined"
+            value={dob}
+            onChange={(e) => setDob(e.target.value)}
+            InputLabelProps={{ shrink: true }}
+          />
 
-              {/* ✅ Reward Summary (collapsible) */}
-              {customerData && showRewards && (
-                <RewardSummaryCard
-                  totalPoints={customerData.totalRewardPoints}
-                              rewards={customerData.rewards}
-                              showRewards={showRewards}
-                              setShowRewards={setShowRewards}
-                              showTotalPoints={false}
-                />
-              )}
-
-              <CategorySelector
-                categories={menuCategories.map(cat => cat.name)}
-                selectedCategory={selectedCategory}
-                onSelectCategory={setSelectedCategory}
-              />
-
-              {Object.keys(groupedItems).map(subcategory => (
-                <SubcategorySection
-                  key={subcategory}
-                  title={subcategory}
-                  items={groupedItems[subcategory]}
-                  selectedItems={selectedItems}
-                  onAddItem={handleAddItem}
-                  onIncreaseItem={handleIncrease}
-                  onDecreaseItem={handleDecrease}
-                />
-              ))}
-
-              <CartButton
-                itemCount={cartItemCount}
-                onClick={() => setView("cart")}
-              />
-            </>
+          {customerData && (
+            <RewardSummaryCard
+              totalPoints={customerData.totalRewardPoints}
+              rewards={customerData.rewards}
+              showRewards={showRewards}
+              setShowRewards={setShowRewards}
+            />
           )}
+
+          <Button
+            variant="contained"
+            fullWidth
+            sx={{ mt: 2 }}
+            onClick={handleSaveCustomerInfo}
+          >
+            Continue
+          </Button>
+        </Box>
+      ) : (
+        <>
+          {/* ✅ Minified Reward Info in top bar */}
+          {customerData && (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "flex-end",
+                alignItems: "center",
+                mb: 2,
+              }}
+            >
+              <Typography variant="body2" sx={{ mr: 1 }}>
+                Rewards: <strong>{customerData.totalRewardPoints}</strong>
+              </Typography>
+              <IconButton
+                size="small"
+                color="primary"
+                onClick={() => setShowRewards(!showRewards)}
+              >
+                <Gift size={16} />
+              </IconButton>
+            </Box>
+          )}
+
+          {/* ✅ Reward Summary (collapsible) */}
+          {customerData && showRewards && (
+            <RewardSummaryCard
+              totalPoints={customerData.totalRewardPoints}
+              rewards={customerData.rewards}
+              showRewards={showRewards}
+              setShowRewards={setShowRewards}
+              showTotalPoints={false}
+            />
+          )}
+
+          <CategorySelector
+            categories={menuCategories.map(cat => cat.name)}
+            selectedCategory={selectedCategory}
+            onSelectCategory={setSelectedCategory}
+          />
+
+          {Object.keys(groupedItems).map(subcategory => (
+            <SubcategorySection
+              key={subcategory}
+              title={subcategory}
+              items={groupedItems[subcategory]}
+              selectedItems={selectedItems}
+              onAddItem={handleAddItem}
+              onIncreaseItem={handleIncrease}
+              onDecreaseItem={handleDecrease}
+            />
+          ))}
         </>
       )}
 
-      {view === "cart" && (
+      {/* Using the FloatingCartButton component for better UX */}
+      {customerInfoSet && (
+        <Box
+          sx={{
+            position: "fixed",
+            bottom: 16,
+            right: 16,
+            zIndex: 1200
+          }}
+        >
+          <FloatingCartButton
+            itemCount={cartItemCount}
+            onClick={() => setCartDrawerOpen(true)}
+            disabled={cartItemCount === 0}
+          />
+        </Box>
+      )}
+
+      {/* Cart Drawer */}
+      <Drawer
+        anchor="right"
+        open={cartDrawerOpen}
+        onClose={() => setCartDrawerOpen(false)}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: { xs: '100%', sm: '80%', md: '50%' },
+            maxWidth: '600px',
+          },
+        }}
+      >
         <ReviewCart
           selectedItems={selectedItems}
           onRemove={handleRemove}
           onIncrease={handleIncrease}
           onDecrease={handleDecrease}
           onSubmit={orderPlaced ? handleAddToExistingOrder : handleSubmitOrder}
-          onBack={() => setView("menu")}
+          onBack={() => setCartDrawerOpen(false)}
           paymentMethod={paymentMethod}
           setPaymentMethod={setPaymentMethod}
           loading={loading}
           orderPlaced={orderPlaced}
           rewardPoints={customerData?.totalRewardPoints}
+          setTotalAfterDiscount={setTotalAfterDiscount}
         />
-      )}
+      </Drawer>
     </CenteredFormLayout>
   );
 };

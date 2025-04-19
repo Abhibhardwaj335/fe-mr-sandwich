@@ -73,9 +73,15 @@ const SingleCustomerRewards: React.FC<{ phoneNumber: string }> = ({ phoneNumber 
     fetchCustomerRewards();
   }, []);
 
-  const handleDeleteReward = async (rewardId: string) => {
+  const handleDeleteReward = async (reward: Reward) => {
     try {
-      await axios.delete(`${API}/rewards/${rewardId}`);
+      await axios.delete(`${API}/rewards`, {
+        params: {
+          id: phoneNumber,
+          rewardType: reward.rewardType,
+          timestamp: new Date(reward.createdAt).getTime(),
+        },
+      });
       fetchCustomerRewards();
     } catch (err) {
       console.error("Error deleting reward:", err);
@@ -83,13 +89,22 @@ const SingleCustomerRewards: React.FC<{ phoneNumber: string }> = ({ phoneNumber 
     }
   };
 
-  const handleSaveEdit = async (rewardId: string) => {
+  const handleSaveEdit = async (reward: Reward) => {
     try {
-      await axios.put(`${API}/rewards/${rewardId}`, {
-        rewardPoints: editPoints,
-        rewardType: editType,
-        rewardPeriod: editPeriod,
-      });
+      await axios.put(
+        `${API}/rewards`,
+        {
+          rewardPoints: editPoints,
+          rewardType: editType,
+          rewardPeriod: editPeriod,
+          timestamp: new Date(reward.createdAt).getTime(),
+        },
+        {
+          params: {
+            id: phoneNumber,
+          },
+        }
+      );
       setEditingRewardId(null);
       fetchCustomerRewards();
     } catch (err) {
@@ -171,7 +186,7 @@ const SingleCustomerRewards: React.FC<{ phoneNumber: string }> = ({ phoneNumber 
                 <TableCell>{new Date(reward.createdAt).toLocaleString()}</TableCell>
                 <TableCell>
                   {editingRewardId === reward.rewardId ? (
-                    <IconButton onClick={() => handleSaveEdit(reward.rewardId)}>
+                    <IconButton onClick={() => handleSaveEdit(reward)}>
                       <SaveIcon />
                     </IconButton>
                   ) : (
@@ -186,7 +201,7 @@ const SingleCustomerRewards: React.FC<{ phoneNumber: string }> = ({ phoneNumber 
                       <EditIcon />
                     </IconButton>
                   )}
-                  <IconButton onClick={() => handleDeleteReward(reward.rewardId)}>
+                  <IconButton onClick={() => handleDeleteReward(reward)}>
                     <DeleteIcon />
                   </IconButton>
                 </TableCell>
