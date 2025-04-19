@@ -103,7 +103,7 @@ export default function MainLayout({ children, isAuthenticated, setIsAuthenticat
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar for desktop */}
-      <aside className="w-60 bg-white shadow-md p-4 hidden md:block" style={{minWidth: "242px"}}>
+      <aside className="bg-white shadow-md p-4 hidden md:block" style={{ minWidth: "250px", width: "18%", maxWidth: "300px" }}>
         <div className="text-2xl font-bold mb-6">🍔 Mr. Sandwich</div>
         <nav className="space-y-2">
           {filteredNavItems.map((item) => (
