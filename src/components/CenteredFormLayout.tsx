@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
+import { useMediaQuery } from 'react-responsive';
 
 const CenteredFormLayout = ({
   title,
@@ -14,13 +15,15 @@ const CenteredFormLayout = ({
   description?: string;
   footer?: React.ReactNode;
 }) => {
+  const isMobile = useMediaQuery({ query: '(max-width: 768px)' });
   return (
-      <div className="min-h-screen flex bg-[#f5f5f5] px-4 pt-12 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex bg-[#f5f5f5]">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-2xl"
+        className="w-full"
+        style={{ maxWidth: isMobile ? "91%" : "42rem" }}
       >
         <Card className="shadow-xl rounded-2xl border border-border bg-[#e3f2fd] text-card-foreground">
           <CardContent className="p-6 space-y-6">
