@@ -1,4 +1,3 @@
-// components/SingleCustomerRewards.tsx
 import React, { useEffect, useState } from "react";
 import {
   Typography,
@@ -37,12 +36,146 @@ interface RewardSummary {
   rewards: Reward[];
 }
 
+// Individual reward row component with its own state
+const RewardRow: React.FC<{
+  reward: Reward;
+  phoneNumber: string;
+  onDelete: () => void;
+  onUpdate: () => void;
+}> = ({ reward, phoneNumber, onDelete, onUpdate }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editType, setEditType] = useState(reward.rewardType);
+  const [editPeriod, setEditPeriod] = useState(reward.rewardPeriod);
+  const [editPoints, setEditPoints] = useState(reward.rewardPoints);
+
+  const handleSave = async () => {
+    try {
+      await axios.put(
+        `${API}/rewards`,
+        {
+          rewardPoints: editPoints,
+          rewardType: editType,
+          rewardPeriod: editPeriod,
+          timestamp: new Date(reward.createdAt).getTime(),
+        },
+        {
+          params: {
+            id: phoneNumber,
+          },
+        }
+      );
+      setIsEditing(false);
+      onUpdate();
+    } catch (err) {
+      console.error("Error updating reward:", err);
+      alert("❌ Failed to update reward");
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await axios.delete(`${API}/rewards`, {
+        params: {
+          id: phoneNumber,
+          rewardType: reward.rewardType,
+          timestamp: new Date(reward.createdAt).getTime(),
+        },
+      });
+      onDelete();
+    } catch (err) {
+      console.error("Error deleting reward:", err);
+      alert("❌ Failed to delete reward");
+    }
+  };
+
+  const handleStartEdit = () => {
+    setEditType(reward.rewardType);
+    setEditPeriod(reward.rewardPeriod);
+    setEditPoints(reward.rewardPoints);
+    setIsEditing(true);
+  };
+
+  return (
+    <TableRow key={reward.rewardId}>
+      <TableCell>
+        {isEditing ? (
+          <TextField
+            select
+            value={editType}
+            onChange={(e) => setEditType(e.target.value)}
+            size="small"
+            fullWidth
+          >
+            {rewardTypes.map((type) => (
+              <MenuItem key={type} value={type}>
+                {type}
+              </MenuItem>
+            ))}
+          </TextField>
+        ) : (
+          reward.rewardType
+        )}
+      </TableCell>
+      <TableCell>
+        {isEditing ? (
+          <TextField
+            select
+            value={editPeriod}
+            onChange={(e) => setEditPeriod(e.target.value)}
+            size="small"
+            fullWidth
+          >
+            {rewardPeriods.map((period) => (
+              <MenuItem key={period} value={period}>
+                {period}
+              </MenuItem>
+            ))}
+          </TextField>
+        ) : (
+          reward.rewardPeriod
+        )}
+      </TableCell>
+      <TableCell>
+        {isEditing ? (
+          <TextField
+            type="number"
+            value={editPoints}
+            onChange={(e) => setEditPoints(Number(e.target.value))}
+            size="small"
+            fullWidth
+          />
+        ) : (
+          reward.rewardPoints
+        )}
+      </TableCell>
+      <TableCell>{new Date(reward.createdAt).toLocaleString()}</TableCell>
+      <TableCell>
+        {isEditing ? (
+          <>
+            <IconButton onClick={handleSave}>
+              <SaveIcon />
+            </IconButton>
+            <IconButton onClick={() => setIsEditing(false)}>
+              <DeleteIcon />
+            </IconButton>
+          </>
+        ) : (
+          <>
+            <IconButton onClick={handleStartEdit}>
+              <EditIcon />
+            </IconButton>
+            <IconButton onClick={handleDelete}>
+              <DeleteIcon />
+            </IconButton>
+          </>
+        )}
+      </TableCell>
+    </TableRow>
+  );
+};
+
 const SingleCustomerRewards: React.FC<{ phoneNumber: string }> = ({ phoneNumber }) => {
   const [summary, setSummary] = useState<RewardSummary | null>(null);
-  const [editingRewardId, setEditingRewardId] = useState<string | null>(null);
-  const [editPoints, setEditPoints] = useState<number>(0);
-  const [editType, setEditType] = useState<string>("");
-  const [editPeriod, setEditPeriod] = useState<string>("");
 
   const fetchCustomerRewards = async () => {
     try {
@@ -71,47 +204,7 @@ const SingleCustomerRewards: React.FC<{ phoneNumber: string }> = ({ phoneNumber 
 
   useEffect(() => {
     fetchCustomerRewards();
-  }, []);
-
-  const handleDeleteReward = async (reward: Reward) => {
-    try {
-      await axios.delete(`${API}/rewards`, {
-        params: {
-          id: phoneNumber,
-          rewardType: reward.rewardType,
-          timestamp: new Date(reward.createdAt).getTime(),
-        },
-      });
-      fetchCustomerRewards();
-    } catch (err) {
-      console.error("Error deleting reward:", err);
-      alert("❌ Failed to delete reward");
-    }
-  };
-
-  const handleSaveEdit = async (reward: Reward) => {
-    try {
-      await axios.put(
-        `${API}/rewards`,
-        {
-          rewardPoints: editPoints,
-          rewardType: editType,
-          rewardPeriod: editPeriod,
-          timestamp: new Date(reward.createdAt).getTime(),
-        },
-        {
-          params: {
-            id: phoneNumber,
-          },
-        }
-      );
-      setEditingRewardId(null);
-      fetchCustomerRewards();
-    } catch (err) {
-      console.error("Error updating reward:", err);
-      alert("❌ Failed to update reward");
-    }
-  };
+  }, [phoneNumber]);
 
   if (!summary) return null;
 
@@ -134,78 +227,13 @@ const SingleCustomerRewards: React.FC<{ phoneNumber: string }> = ({ phoneNumber 
           </TableHead>
           <TableBody>
             {summary.rewards.map((reward) => (
-              <TableRow key={reward.rewardId}>
-                <TableCell>
-                  {editingRewardId === reward.rewardId ? (
-                    <TextField
-                      select
-                      value={editType}
-                      onChange={(e) => setEditType(e.target.value)}
-                      size="small"
-                    >
-                      {rewardTypes.map((type) => (
-                        <MenuItem key={type} value={type}>
-                          {type}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  ) : (
-                    reward.rewardType
-                  )}
-                </TableCell>
-                <TableCell>
-                  {editingRewardId === reward.rewardId ? (
-                    <TextField
-                      select
-                      value={editPeriod}
-                      onChange={(e) => setEditPeriod(e.target.value)}
-                      size="small"
-                    >
-                      {rewardPeriods.map((period) => (
-                        <MenuItem key={period} value={period}>
-                          {period}
-                        </MenuItem>
-                      ))}
-                    </TextField>
-                  ) : (
-                    reward.rewardPeriod
-                  )}
-                </TableCell>
-                <TableCell>
-                  {editingRewardId === reward.rewardId ? (
-                    <TextField
-                      type="number"
-                      value={editPoints}
-                      onChange={(e) => setEditPoints(Number(e.target.value))}
-                      size="small"
-                    />
-                  ) : (
-                    reward.rewardPoints
-                  )}
-                </TableCell>
-                <TableCell>{new Date(reward.createdAt).toLocaleString()}</TableCell>
-                <TableCell>
-                  {editingRewardId === reward.rewardId ? (
-                    <IconButton onClick={() => handleSaveEdit(reward)}>
-                      <SaveIcon />
-                    </IconButton>
-                  ) : (
-                    <IconButton
-                      onClick={() => {
-                        setEditingRewardId(reward.rewardId);
-                        setEditPoints(reward.rewardPoints);
-                        setEditType(reward.rewardType);
-                        setEditPeriod(reward.rewardPeriod);
-                      }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                  )}
-                  <IconButton onClick={() => handleDeleteReward(reward)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
+              <RewardRow
+                key={reward.rewardId}
+                reward={reward}
+                phoneNumber={phoneNumber}
+                onDelete={fetchCustomerRewards}
+                onUpdate={fetchCustomerRewards}
+              />
             ))}
           </TableBody>
         </Table>
