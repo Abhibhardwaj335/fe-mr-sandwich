@@ -1,7 +1,7 @@
-// components/AllCustomerRewards.tsx
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Table, TableHead, TableRow, TableCell, TableBody, TableContainer, Paper } from "@mui/material";
 import axios from "axios";
+import { useNotify } from '../components/NotificationContext';
 
 const API = import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL;
 
@@ -20,6 +20,7 @@ interface RewardSummary {
 }
 
 const AllCustomerRewards: React.FC = () => {
+  const notify = useNotify();
   const [allSummaries, setAllSummaries] = useState<RewardSummary[]>([]);
 
   const fetchAllRewards = async () => {
@@ -50,7 +51,7 @@ const AllCustomerRewards: React.FC = () => {
       setAllSummaries(Object.values(summaryMap));
     } catch (error) {
       console.error("Error fetching all rewards:", error);
-      alert("Failed to fetch all customer rewards.");
+      notify("Failed to fetch all customer rewards.");
     }
   };
 

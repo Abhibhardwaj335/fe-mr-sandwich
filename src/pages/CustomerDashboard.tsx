@@ -10,8 +10,10 @@ import {
 } from "@mui/material";
 import CenteredFormLayout from "../components/CenteredFormLayout";
 import { LayoutDashboard } from "lucide-react";
+import { useNotify } from '../components/NotificationContext';
 
 const CustomerDashboard: React.FC = () => {
+  const notify = useNotify();
   const [customerId, setCustomerId] = useState("");
   const [loading, setLoading] = useState(false);
   const [customerData, setCustomerData] = useState<any>(null);
@@ -20,7 +22,7 @@ const CustomerDashboard: React.FC = () => {
   const [coupons, setCoupons] = useState<any[]>([]); // State for coupon usage
 
   const fetchDashboard = async () => {
-    if (!customerId) return alert("Enter a valid customer ID.");
+    if (!customerId) return notify("Enter a valid customer ID.");
     setLoading(true);
 
     try {
@@ -33,7 +35,7 @@ const CustomerDashboard: React.FC = () => {
       setCoupons(res.data.coupons || []); // Fetch coupon data
     } catch (err) {
       console.error("Error fetching dashboard:", err);
-      alert("Failed to fetch customer dashboard.");
+      notify("Failed to fetch customer dashboard.");
     } finally {
       setLoading(false);
     }

@@ -12,8 +12,10 @@ import {
 } from "@mui/material";
 import CenteredFormLayout from "../components/CenteredFormLayout";
 import { Send } from "lucide-react";
+import { useNotify } from '../components/NotificationContext';
 
 const SendWhatsApp: React.FC = () => {
+  const notify = useNotify();
   const [customerId, setCustomerId] = useState("");
   const [customerData, setCustomerData] = useState<{ name: string; phoneNumber: string } | null>(null);
   const [loading, setLoading] = useState(false);
@@ -27,7 +29,7 @@ const SendWhatsApp: React.FC = () => {
 
   const fetchCustomerDetails = async () => {
     if (!customerId.trim()) {
-      alert("❌ Please enter a Customer ID.");
+      notify("❌ Please enter a Customer ID.");
       return;
     }
 
@@ -39,7 +41,7 @@ const SendWhatsApp: React.FC = () => {
       setCustomerData(response.data);
     } catch (error) {
       console.error("❌ Error fetching customer:", error);
-      alert("Failed to fetch customer.");
+      notify("Failed to fetch customer.");
     } finally {
       setLoading(false);
     }
@@ -47,7 +49,7 @@ const SendWhatsApp: React.FC = () => {
 
   const sendWhatsAppNotification = async () => {
     if (!customerData?.phoneNumber || !templateType) {
-      alert("❌ Missing required data.");
+      notify("❌ Missing required data.");
       return;
     }
 
@@ -59,7 +61,7 @@ const SendWhatsApp: React.FC = () => {
 
     if (templateType === "promocode_update") {
       payload.promoCode = promoCode;
-    } else if (templateType === "new_menu_alert") {
+    } else if (templateType === "new_menu_notify") {
       payload.menuItem = menuItem;
     } else if (templateType === "exclusive_offer") {
       payload.occasion = occasion;
@@ -70,10 +72,10 @@ const SendWhatsApp: React.FC = () => {
 
     try {
       await axios.post(url, payload);
-      alert("✅ WhatsApp Notification Sent!");
+      notify("✅ WhatsApp Notification Sent!");
     } catch (error) {
       console.error("❌ Error sending WhatsApp:", error);
-      alert("Failed to send WhatsApp message.");
+      notify("Failed to send WhatsApp message.");
     }
   };
 

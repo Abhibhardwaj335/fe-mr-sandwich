@@ -6,8 +6,10 @@ import RewardForm from "../components/RewardForm";
 import SingleCustomerRewards from "../components/SingleCustomerRewards";
 import AllCustomerRewards from "../components/AllCustomerRewards";
 import { Gift } from "lucide-react";
+import { useNotify } from '../components/NotificationContext';
 
 const ManageRewards: React.FC = () => {
+  const notify = useNotify();
   const [viewMode, setViewMode] = useState<"form" | "single" | "all">("form");
   const [phoneNumber, setPhoneNumber] = useState("");
 
@@ -25,7 +27,7 @@ const ManageRewards: React.FC = () => {
           variant={viewMode === "single" ? "contained" : "outlined"}
           onClick={() => {
             if (!phoneNumber || phoneNumber.length < 4) {
-              alert("Please enter a valid phone number");
+              notify("Please enter a valid phone number");
               return;
             }
             setViewMode("single");

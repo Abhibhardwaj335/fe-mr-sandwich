@@ -1,5 +1,5 @@
 import React from "react";
-import { Badge, Box, Fab, Typography, Zoom, useTheme,Tooltip } from "@mui/material";
+import { Badge, Box, Fab, Typography, Zoom, useTheme } from "@mui/material";
 import { ShoppingCart } from "lucide-react";
 
 interface FloatingCartButtonProps {

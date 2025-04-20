@@ -13,8 +13,10 @@ import CenteredFormLayout from "../components/CenteredFormLayout";
 import { Ticket } from "lucide-react";
 import Snackbar from "@mui/material/Snackbar";
 import MuiAlert from "@mui/material/Alert";
+import { useNotify } from '../components/NotificationContext';
 
 export default function CouponManager() {
+  const notify = useNotify();
   const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" as "success" | "error" });
   const [coupons, setCoupons] = useState<any[]>([]);
   const [newCoupon, setNewCoupon] = useState({
@@ -28,6 +30,7 @@ export default function CouponManager() {
       const data = Array.isArray(res.data) ? res.data : res.data.coupons || [];
       setCoupons(data);
     } catch (err) {
+      notify("Failed to fetch coupons");
       console.error("Failed to fetch coupons", err);
       setCoupons([]);
     }
@@ -40,6 +43,7 @@ export default function CouponManager() {
       fetchCoupons();
       setViewMode("existing");
     } catch (err) {
+      notify("Failed to create coupon");
       console.error("Failed to create coupon", err);
     }
   };

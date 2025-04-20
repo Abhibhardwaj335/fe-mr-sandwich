@@ -17,6 +17,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import SaveIcon from "@mui/icons-material/Save";
 import EditIcon from "@mui/icons-material/Edit";
 import axios from "axios";
+import { useNotify } from '../components/NotificationContext';
 
 const rewardTypes = ["Purchase", "Referral", "Loyalty"];
 const rewardPeriods = ["Weekly", "Monthly"];
@@ -43,6 +44,7 @@ const RewardRow: React.FC<{
   onDelete: () => void;
   onUpdate: () => void;
 }> = ({ reward, phoneNumber, onDelete, onUpdate }) => {
+  const notify = useNotify();
   const [isEditing, setIsEditing] = useState(false);
   const [editType, setEditType] = useState(reward.rewardType);
   const [editPeriod, setEditPeriod] = useState(reward.rewardPeriod);
@@ -68,7 +70,7 @@ const RewardRow: React.FC<{
       onUpdate();
     } catch (err) {
       console.error("Error updating reward:", err);
-      alert("❌ Failed to update reward");
+      notify("❌ Failed to update reward");
     }
   };
 
@@ -84,7 +86,7 @@ const RewardRow: React.FC<{
       onDelete();
     } catch (err) {
       console.error("Error deleting reward:", err);
-      alert("❌ Failed to delete reward");
+      notify("❌ Failed to delete reward");
     }
   };
 
@@ -176,6 +178,7 @@ const RewardRow: React.FC<{
 };
 
 const SingleCustomerRewards: React.FC<{ phoneNumber: string }> = ({ phoneNumber }) => {
+  const notify = useNotify();
   const [summary, setSummary] = useState<RewardSummary | null>(null);
 
   const fetchCustomerRewards = async () => {
@@ -199,7 +202,7 @@ const SingleCustomerRewards: React.FC<{ phoneNumber: string }> = ({ phoneNumber 
       });
     } catch (error) {
       console.error("Error fetching customer rewards:", error);
-      alert("Failed to fetch customer rewards.");
+      notify("Failed to fetch customer rewards.");
     }
   };
 

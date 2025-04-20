@@ -22,7 +22,7 @@ import SubcategorySection from "../components/order/SubcategorySection";
 import TableIdInput from "../components/order/TableIdInput";
 import RewardSummaryCard from "../components/order/RewardSummaryCard";
 import FloatingCartButton from "../components/order/FloatingCartButton";
-
+import { useNotify } from '../components/NotificationContext';
 interface MenuItem {
   name: string;
   price: number;
@@ -61,6 +61,7 @@ const countryCodes = [
 ];
 
 const OrderPage: React.FC = () => {
+  const notify = useNotify();
   const [name, setName] = useState("");
   const [countryCode, setCountryCode] = useState("+91");
   const [localPhone, setLocalPhone] = useState("");
@@ -165,7 +166,7 @@ const OrderPage: React.FC = () => {
     if (name && localPhone) {
       setCustomerInfoSet(true);
     } else {
-      alert("Please enter your name and phone number.");
+      notify("Please enter your name and phone number.");
     }
   };
 
@@ -250,7 +251,7 @@ const OrderPage: React.FC = () => {
     } catch (err) {
       console.error("❌ Error redeeming reward points:", err);
       const errorMessage = (err as any).response?.data?.message || "Failed to redeem reward points";
-      alert(`Note: ${errorMessage}\nYour order will still be placed.`);
+      notify(`Note: ${errorMessage}\nYour order will still be placed.`);
       return false;
     }
   };
@@ -280,22 +281,22 @@ const OrderPage: React.FC = () => {
   // Update the handleSubmitOrder function
   const handleSubmitOrder = async () => {
     if (!customerName || !customerPhone) {
-      alert("Please enter your name and phone number.");
+      notify("Please enter your name and phone number.");
       return;
     }
 
     if (!effectiveTableId) {
-      alert("Please enter a Table ID.");
+      notify("Please enter a Table ID.");
       return;
     }
 
     if (selectedItems.length === 0) {
-      alert("Please add items");
+      notify("Please add items");
       return;
     }
 
     if (!paymentMethod) {
-      alert("Please select a payment method.");
+      notify("Please select a payment method.");
       return;
     }
 
@@ -341,7 +342,7 @@ const OrderPage: React.FC = () => {
       setTableId(effectiveTableId);
       setOrderPlaced(true);
 
-      alert("Order placed successfully!");
+      notify("Order placed successfully!");
       setSelectedItems([]);
       setCartDrawerOpen(false);
 
@@ -357,7 +358,7 @@ const OrderPage: React.FC = () => {
       }
     } catch (err) {
       console.error("Error placing order:", err);
-      alert("Failed to place order");
+      notify("Failed to place order");
     } finally {
       setLoading(false);
     }
@@ -366,17 +367,17 @@ const OrderPage: React.FC = () => {
   // Update the handleAddToExistingOrder function similarly
   const handleAddToExistingOrder = async () => {
     if (!orderId) {
-      alert("No existing order to add items to.");
+      notify("No existing order to add items to.");
       return;
     }
 
     if (selectedItems.length === 0) {
-      alert("Please add items.");
+      notify("Please add items.");
       return;
     }
 
     if (!paymentMethod) {
-      alert("Please select a payment method.");
+      notify("Please select a payment method.");
       return;
     }
 
@@ -423,7 +424,7 @@ const OrderPage: React.FC = () => {
       await sendAdminWhatsAppNotification(orderPayload);
 
       setOrderPlaced(true);
-      alert("Items added to the existing order!");
+      notify("Items added to the existing order!");
       setSelectedItems([]);
       setCartDrawerOpen(false);
 
@@ -433,7 +434,7 @@ const OrderPage: React.FC = () => {
       }
     } catch (err) {
       console.error("Error adding items to existing order:", err);
-      alert("Failed to add items to existing order");
+      notify("Failed to add items to existing order");
     } finally {
       setLoading(false);
     }

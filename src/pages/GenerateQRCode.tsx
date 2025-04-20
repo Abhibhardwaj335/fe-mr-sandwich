@@ -3,8 +3,10 @@ import { Box, Button, Typography, CircularProgress, TextField, Radio, RadioGroup
 import QRCode from 'react-qr-code';
 import CenteredFormLayout from "../components/CenteredFormLayout";
 import { QrCode } from "lucide-react";
+import { useNotify } from '../components/NotificationContext';
 
 const GenerateQRCode: React.FC = () => {
+  const notify = useNotify();
   const [tableId, setTableId] = useState('');
   const [customLink, setCustomLink] = useState('');
   const [qrCodeUrl, setQrCodeUrl] = useState('');
@@ -13,12 +15,12 @@ const GenerateQRCode: React.FC = () => {
 
   const handleGenerateQRCode = () => {
     if (qrType === 'table' && !tableId) {
-      alert('Please enter a valid table ID');
+      notify('Please enter a valid table ID');
       return;
     }
 
     if (qrType === 'link' && !customLink) {
-      alert('Please enter a valid URL');
+      notify('Please enter a valid URL');
       return;
     }
 

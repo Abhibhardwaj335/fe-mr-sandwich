@@ -4,12 +4,14 @@ import { Box, TextField, Button, CircularProgress } from "@mui/material";
 import CenteredFormLayout from "../components/CenteredFormLayout";
 import axios from "axios";
 import {Lock } from "lucide-react";
+import { useNotify } from '../components/NotificationContext';
 
 type LoginProps = {
   onLogin: () => void;
 };
 
 const Login: React.FC<LoginProps> = ({ onLogin }) => {
+  const notify = useNotify();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -41,10 +43,10 @@ const Login: React.FC<LoginProps> = ({ onLogin }) => {
         onLogin();
         navigate(from, { replace: true });
       } else {
-        alert("Invalid credentials");
+        notify("Invalid credentials");
       }
     } catch (err) {
-      alert("Login failed");
+      notify("Login failed");
     }
     setLoading(false);
    };

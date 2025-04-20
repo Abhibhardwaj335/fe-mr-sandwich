@@ -13,6 +13,7 @@ import {
 } from "@mui/material";
 import CenteredFormLayout from "../components/CenteredFormLayout";
 import { UserPlus } from "lucide-react";
+import { useNotify } from '../components/NotificationContext';
 
 const countryCodes = [
   { code: "+91"},
@@ -24,6 +25,7 @@ const countryCodes = [
 ];
 
 const CustomerForm: React.FC = () => {
+  const notify = useNotify();
   const [name, setName] = useState("");
   const [countryCode, setCountryCode] = useState("+91");
   const [localPhone, setLocalPhone] = useState("");
@@ -33,7 +35,7 @@ const CustomerForm: React.FC = () => {
   const saveCustomerData = async () => {
     const fullPhoneNumber = `${countryCode}${localPhone}`;
     if (!name || !localPhone) {
-      alert("❌ Please fill all required fields.");
+      notify("❌ Please fill all required fields.");
       return;
     }
 
@@ -43,13 +45,13 @@ const CustomerForm: React.FC = () => {
         import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL + "/customer",
         { name, phoneNumber: fullPhoneNumber, dob }
       );
-      alert("✅ Customer data saved with customerId=" + response.data.customerId + "!");
+      notify("✅ Customer data saved with customerId=" + response.data.customerId + "!");
       setName("");
       setLocalPhone("");
       setDob("");
     } catch (error) {
       console.error("❌ Error saving customer:", error);
-      alert("Failed to save customer.");
+      notify("Failed to save customer.");
     } finally {
       setLoading(false);
     }
