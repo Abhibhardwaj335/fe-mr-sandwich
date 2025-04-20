@@ -78,7 +78,7 @@ const OrderPage: React.FC = () => {
   const [customerData, setCustomerData] = useState<CustomerData | null>(null);
   const [fetchingCustomer, setFetchingCustomer] = useState<boolean>(false);
   const [showRewards, setShowRewards] = useState<boolean>(false);
-  const [totalAfterDiscount, setTotalAfterDiscount] = useState<number>(0);
+  const [totalAfterDiscount, setTotalAfterDiscount] = useState<any>(0);
 
   const urlTableId = new URLSearchParams(window.location.search).get("tableId") || "";
   const effectiveTableId = urlTableId || manualTableId;

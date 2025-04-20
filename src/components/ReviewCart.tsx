@@ -11,7 +11,7 @@ import {
   InputLabel,
   Chip,
 } from "@mui/material";
-import { PlusCircle, MinusCircle, XCircle, Gift } from "lucide-react";
+import { ShoppingCart, PlusCircle, MinusCircle, XCircle, Gift } from "lucide-react";
 import CenteredFormLayout from "./CenteredFormLayout";
 interface CartItem {
   name: string;
@@ -71,9 +71,9 @@ const ReviewCart: React.FC<Props> = ({
   }, [paymentMethod, totalAfterRewards, total, setTotalAfterDiscount]);
 
   return (
-  <CenteredFormLayout>
+  <CenteredFormLayout title="Review your Order" icon={<ShoppingCart />}>
     <Box>
-      {rewardPoints > 0 && (
+      {typeof rewardPoints === "number" && rewardPoints > 0 && (
         <>
           <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
             <Chip
