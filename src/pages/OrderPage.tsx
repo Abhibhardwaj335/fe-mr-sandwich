@@ -564,7 +564,6 @@ const OrderPage: React.FC = () => {
         </>
       )}
 
-      {/* Using the FloatingCartButton component for better UX */}
       {customerInfoSet && (
         <Box
           sx={{
@@ -578,19 +577,24 @@ const OrderPage: React.FC = () => {
             itemCount={cartItemCount}
             onClick={() => setCartDrawerOpen(true)}
             disabled={cartItemCount === 0}
+            total={selectedItems.reduce((sum, item) => sum + item.price * item.count, 0)}
+            showTotal={cartItemCount > 0}
           />
         </Box>
       )}
 
-      {/* Cart Drawer */}
+      {/* Cart Drawer - Improved */}
       <Drawer
         anchor="right"
         open={cartDrawerOpen}
         onClose={() => setCartDrawerOpen(false)}
-        sx={{
-          '& .MuiDrawer-paper': {
-            width: { xs: '100%', sm: '80%', md: '50%' },
-            maxWidth: '600px',
+        PaperProps={{
+          sx: {
+            width: { xs: '100%', sm: '450px' },
+            maxWidth: '100%',
+            borderTopLeftRadius: { xs: 0, sm: 16 },
+            borderBottomLeftRadius: { xs: 0, sm: 16 },
+            overflow: 'hidden'
           },
         }}
       >

@@ -9,10 +9,20 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Chip,
+  AppBar,
+  Toolbar,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  Paper,
+  Stack,
+  Badge,
+  alpha,
+  useTheme
 } from "@mui/material";
-import { ShoppingCart, PlusCircle, MinusCircle, XCircle, Gift } from "lucide-react";
-import CenteredFormLayout from "./CenteredFormLayout";
+import { ShoppingCart, PlusCircle, MinusCircle, XCircle, Gift, ArrowLeft, Check } from "lucide-react";
+
 interface CartItem {
   name: string;
   price: number;
@@ -26,14 +36,14 @@ interface Props {
   onRemove: (name: string) => void;
   onIncrease: (name: string) => void;
   onDecrease: (name: string) => void;
-  onSubmit: (adjustedTotal: number) => void; // UPDATED to accept adjusted total
+  onSubmit: (adjustedTotal: number) => void;
   onBack: () => void;
   paymentMethod: string;
   setPaymentMethod: (value: string) => void;
   loading: boolean;
   orderPlaced: boolean;
   rewardPoints?: number;
-  setTotalAfterDiscount: (total: number) => void; // Add this line
+  setTotalAfterDiscount: (total: number) => void;
 }
 
 const ReviewCart: React.FC<Props> = ({
@@ -48,8 +58,9 @@ const ReviewCart: React.FC<Props> = ({
   loading,
   orderPlaced,
   rewardPoints,
-  setTotalAfterDiscount, // Receiving setTotalAfterDiscount as prop
+  setTotalAfterDiscount,
 }) => {
+  const theme = useTheme();
   const total = selectedItems.reduce((sum, item) => sum + item.price * item.count, 0);
   const rewardDiscount = paymentMethod === "Rewards" && rewardPoints && rewardPoints >= 100
     ? Math.min(rewardPoints / 10, total)
@@ -58,7 +69,7 @@ const ReviewCart: React.FC<Props> = ({
   const totalAfterRewards = (total - rewardDiscount).toFixed(2);
 
   const handleSubmit = () => {
-    onSubmit(parseFloat(totalAfterRewards)); // Pass adjusted total to onSubmit
+    onSubmit(parseFloat(totalAfterRewards));
   };
 
   // Update totalAfterDiscount in the parent component
@@ -70,106 +81,233 @@ const ReviewCart: React.FC<Props> = ({
     }
   }, [paymentMethod, totalAfterRewards, total, setTotalAfterDiscount]);
 
+  // Count total items in cart
+  const itemCount = selectedItems.reduce((count, item) => count + item.count, 0);
+
   return (
-  <CenteredFormLayout title="Review your Order" icon={<ShoppingCart />}>
-    <Box>
+    <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* Custom AppBar for drawer */}
+      <AppBar position="static" color="default" elevation={0} sx={{
+        borderBottom: `1px solid ${theme.palette.divider}`,
+        backgroundColor: theme.palette.background.paper
+      }}>
+        <Toolbar>
+          <IconButton edge="start" color="inherit" onClick={onBack} aria-label="back">
+            <ArrowLeft />
+          </IconButton>
+          <Typography variant="h6" sx={{ ml: 1, flexGrow: 1 }}>
+            Your Order
+          </Typography>
+          <Badge badgeContent={itemCount} color="primary">
+            <ShoppingCart />
+          </Badge>
+        </Toolbar>
+      </AppBar>
+
+      {/* Reward Points Display */}
       {typeof rewardPoints === "number" && rewardPoints > 0 && (
-        <>
-          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-            <Chip
-              icon={<Gift size={16} />}
-              label={`${rewardPoints} points`}
-              color="primary"
-              variant="outlined"
-              size="small"
-            />
-          </Box>
-          <Divider sx={{ mb: 2 }} />
-        </>
-      )}
-
-      <Button variant="outlined" onClick={onBack} sx={{ mb: 2 }}>
-        Back to Menu
-      </Button>
-
-      <FormControl fullWidth sx={{ mb: 2 }}>
-        <InputLabel>Payment Method</InputLabel>
-        <Select
-          value={paymentMethod}
-          onChange={(e) => setPaymentMethod(e.target.value)}
-          label="Payment Method"
-        >
-          <MenuItem value="Cash">Cash</MenuItem>
-          <MenuItem value="Online">Online</MenuItem>
-          {rewardPoints && rewardPoints >= 100 && (
-            <MenuItem value="Rewards">Use Reward Points (100 pts = ₹10 off)</MenuItem>
-          )}
-        </Select>
-      </FormControl>
-
-      {selectedItems.length === 0 ? (
-        <Typography variant="body1" sx={{ textAlign: "center", my: 4 }}>
-          Your cart is empty. Please add some items.
-        </Typography>
-      ) : (
-        selectedItems.map((item) => (
-          <Box
-            key={item.name}
-            display="flex"
-            justifyContent="space-between"
-            alignItems="center"
-            mb={2}
-            p={1}
-            border="1px solid #ddd"
-            borderRadius={2}
-          >
-            <Typography>
-              {item.name} - ₹{item.price}
+        <Box sx={{ p: 2, backgroundColor: alpha(theme.palette.primary.main, 0.05) }}>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Gift size={20} color={theme.palette.primary.main} />
+            <Typography variant="body2" color="primary.main" fontWeight="medium">
+              You have <strong>{rewardPoints}</strong> reward points available
             </Typography>
-
-            <Box display="flex" alignItems="center">
-              <IconButton onClick={() => onDecrease(item.name)}>
-                <MinusCircle />
-              </IconButton>
-              <Typography mx={1}>{item.count}</Typography>
-              <IconButton onClick={() => onIncrease(item.name)}>
-                <PlusCircle />
-              </IconButton>
-              <IconButton onClick={() => onRemove(item.name)} color="secondary">
-                <XCircle />
-              </IconButton>
-            </Box>
-          </Box>
-        ))
-      )}
-
-      <Typography variant="h6" mt={2}>
-        Total: ₹{total.toFixed(2)}
-      </Typography>
-
-      {paymentMethod === "Rewards" && rewardPoints && rewardPoints >= 100 && (
-        <Box sx={{ mt: 1, mb: 2, p: 1, bgcolor: "#f0f7ff", borderRadius: 1 }}>
-          <Typography variant="body2">
-            Using {Math.min(rewardPoints, Math.floor(total * 10))} reward points
-            for a discount of ₹{rewardDiscount.toFixed(2)}
-          </Typography>
-          <Typography variant="subtitle1" fontWeight="bold" mt={1}>
-            Total after rewards: ₹{totalAfterRewards}
-          </Typography>
+          </Stack>
         </Box>
       )}
 
-      <Button
-        variant="contained"
-        fullWidth
-        sx={{ mt: 3 }}
-        onClick={handleSubmit}
-        disabled={loading || selectedItems.length === 0}
-      >
-        {loading ? "Processing..." : orderPlaced ? "Add to Existing Order" : "Place Order"}
-      </Button>
+      {/* Cart Items */}
+      <Box sx={{ flex: 1, overflowY: 'auto', px: 2, py: 1 }}>
+        {selectedItems.length === 0 ? (
+          <Box sx={{ textAlign: 'center', mt: 8, p: 3 }}>
+            <ShoppingCart size={48} color={theme.palette.text.disabled} />
+            <Typography variant="body1" sx={{ mt: 2, color: 'text.secondary' }}>
+              Your cart is empty. Add some items to get started.
+            </Typography>
+            <Button
+              variant="outlined"
+              onClick={onBack}
+              sx={{ mt: 2 }}
+            >
+              Browse Menu
+            </Button>
+          </Box>
+        ) : (
+          <List disablePadding>
+            {selectedItems.map((item) => (
+              <Paper
+                key={item.name}
+                elevation={0}
+                sx={{
+                  mb: 2,
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 2,
+                  overflow: 'hidden'
+                }}
+              >
+                <ListItem
+                  sx={{
+                    py: 1.5,
+                    backgroundColor: theme.palette.background.default,
+                    borderBottom: `1px solid ${theme.palette.divider}`
+                  }}
+                >
+                  <ListItemText
+                    primary={
+                      <Typography variant="subtitle1" fontWeight="medium">
+                        {item.name}
+                      </Typography>
+                    }
+                    secondary={`₹${item.price.toFixed(2)} each`}
+                  />
+                  <ListItemSecondaryAction>
+                    <IconButton
+                      size="small"
+                      onClick={() => onRemove(item.name)}
+                      sx={{ color: theme.palette.error.main }}
+                    >
+                      <XCircle size={18} />
+                    </IconButton>
+                  </ListItemSecondaryAction>
+                </ListItem>
+
+                <Box sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  px: 2,
+                  py: 1
+                }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Subtotal: ₹{(item.price * item.count).toFixed(2)}
+                  </Typography>
+
+                  <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 1,
+                    overflow: 'hidden'
+                  }}>
+                    <IconButton
+                      size="small"
+                      onClick={() => onDecrease(item.name)}
+                      disabled={item.count <= 1}
+                      sx={{ borderRadius: 0 }}
+                    >
+                      <MinusCircle size={16} />
+                    </IconButton>
+
+                    <Typography variant="body2" sx={{
+                      px: 2,
+                      fontWeight: 'medium'
+                    }}>
+                      {item.count}
+                    </Typography>
+
+                    <IconButton
+                      size="small"
+                      onClick={() => onIncrease(item.name)}
+                      sx={{ borderRadius: 0 }}
+                    >
+                      <PlusCircle size={16} />
+                    </IconButton>
+                  </Box>
+                </Box>
+              </Paper>
+            ))}
+          </List>
+        )}
+      </Box>
+
+      {/* Payment Methods and Total */}
+      {selectedItems.length > 0 && (
+        <Paper
+          elevation={3}
+          sx={{
+            p: 2,
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+            boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.05)'
+          }}
+        >
+          <FormControl fullWidth sx={{ mb: 2 }}>
+            <InputLabel>Payment Method</InputLabel>
+            <Select
+              value={paymentMethod}
+              onChange={(e) => setPaymentMethod(e.target.value as string)}
+              label="Payment Method"
+              sx={{ borderRadius: 2 }}
+            >
+              <MenuItem value="Cash">Cash</MenuItem>
+              <MenuItem value="Online">Online</MenuItem>
+              {rewardPoints && rewardPoints >= 100 && (
+                <MenuItem value="Rewards">
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Gift size={16} />
+                    <span>Use Reward Points (100 pts = ₹10 off)</span>
+                  </Stack>
+                </MenuItem>
+              )}
+            </Select>
+          </FormControl>
+
+          <Divider sx={{ my: 2 }} />
+
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+            <Typography variant="body1" color="text.secondary">Subtotal:</Typography>
+            <Typography variant="body1">₹{total.toFixed(2)}</Typography>
+          </Box>
+
+          {paymentMethod === "Rewards" && rewardPoints && rewardPoints >= 100 && (
+            <>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                <Typography variant="body1" color="primary">
+                  <Stack direction="row" spacing={0.5} alignItems="center">
+                    <Gift size={16} />
+                    <span>Reward Discount:</span>
+                  </Stack>
+                </Typography>
+                <Typography variant="body1" color="primary">- ₹{rewardDiscount.toFixed(2)}</Typography>
+              </Box>
+
+              <Divider sx={{ my: 2 }} />
+
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Typography variant="h6">Total:</Typography>
+                <Typography variant="h6" color="primary.main">₹{totalAfterRewards}</Typography>
+              </Box>
+
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                Using {Math.min(rewardPoints, Math.floor(total * 10))} reward points for discount
+              </Typography>
+            </>
+          )}
+
+          {paymentMethod !== "Rewards" && (
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Typography variant="h6">Total:</Typography>
+              <Typography variant="h6">₹{total.toFixed(2)}</Typography>
+            </Box>
+          )}
+
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={handleSubmit}
+            disabled={loading || selectedItems.length === 0}
+            sx={{
+              py: 1.5,
+              borderRadius: 2,
+              boxShadow: 2
+            }}
+            startIcon={orderPlaced ? <Check /> : null}
+          >
+            {loading ? "Processing..." : orderPlaced ? "Add to Existing Order" : "Place Order"}
+          </Button>
+        </Paper>
+      )}
     </Box>
-    </CenteredFormLayout>
   );
 };
 
