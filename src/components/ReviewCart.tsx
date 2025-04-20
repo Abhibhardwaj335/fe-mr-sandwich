@@ -108,9 +108,9 @@ const ReviewCart: React.FC<Props> = ({
       {typeof rewardPoints === "number" && rewardPoints > 0 && (
         <Box sx={{ p: 2, backgroundColor: alpha(theme.palette.primary.main, 0.05) }}>
           <Stack direction="row" spacing={1} alignItems="center">
-            <Gift size={20} color={theme.palette.primary.main} />
+            <Gift size={40} color={theme.palette.primary.main} />
             <Typography variant="body2" color="primary.main" fontWeight="medium">
-              You have <strong>{rewardPoints}</strong> reward points available
+              You have <strong>{rewardPoints}</strong> reward points. Choose Rewards as payment to redeem them.
             </Typography>
           </Stack>
         </Box>

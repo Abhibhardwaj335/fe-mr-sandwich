@@ -255,6 +255,28 @@ const OrderPage: React.FC = () => {
     }
   };
 
+  const handleAddPurchaseRewardPoints = async (amount: number, phoneNumber: string) => {
+    const rewardPoints = Math.floor(amount / 100) * 10; // 10 points per ₹100
+
+    if (rewardPoints === 0) return; // Skip if under ₹100
+
+    const rewardPayload = {
+      rewardType: "Online Purchase",
+      rewardPoints,
+      rewardPeriod: "Monthly", // or "Weekly" if needed
+      phoneNumber
+    };
+
+    try {
+      await axios.post(`${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/rewards`, rewardPayload, {
+        params: { id: phoneNumber }
+      });
+      console.log("✅ Reward points added for purchase");
+    } catch (err) {
+      console.error("❌ Failed to add purchase reward points:", err);
+    }
+  };
+
   // Update the handleSubmitOrder function
   const handleSubmitOrder = async () => {
     if (!customerName || !customerPhone) {
@@ -323,6 +345,9 @@ const OrderPage: React.FC = () => {
       setSelectedItems([]);
       setCartDrawerOpen(false);
 
+      // Add reward points for this purchase
+      await handleAddPurchaseRewardPoints(orderPayload.total, localPhone);
+
       // Send WhatsApp notification to admin
       await sendAdminWhatsAppNotification(orderPayload);
 
@@ -389,8 +414,12 @@ const OrderPage: React.FC = () => {
         orderPayload
       );
 
-      // Send admin notification for order update
       orderPayload.total = orderUpdateResponse.data.totalAmount;
+
+      // Add reward points for this purchase
+      // await handleAddPurchaseRewardPoints(orderPayload.total, customerPhone);
+
+      // Send admin notification for order update
       await sendAdminWhatsAppNotification(orderPayload);
 
       setOrderPlaced(true);

@@ -1,5 +1,5 @@
 import React from "react";
-import { Badge, Box, Fab, Typography, Zoom, useTheme } from "@mui/material";
+import { Badge, Box, Fab, Typography, Zoom, useTheme,Tooltip } from "@mui/material";
 import { ShoppingCart } from "lucide-react";
 
 interface FloatingCartButtonProps {
@@ -19,88 +19,116 @@ const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
 }) => {
   const theme = useTheme();
 
-  return (
-    <Box sx={{ position: "relative" }}>
-      {/* Price pill that shows above the button */}
-      <Zoom in={showTotal && itemCount > 0 && total > 0}>
-        <Box
-          sx={{
-            position: "absolute",
-            bottom: "100%",
-            right: 0,
-            mb: 1,
-            backgroundColor: theme.palette.background.paper,
-            color: theme.palette.text.primary,
-            borderRadius: 4,
-            py: 0.5,
-            px: 1.5,
-            minWidth: 80,
-            textAlign: "center",
-            boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-            border: `1px solid ${theme.palette.divider}`,
-            transition: "all 0.2s ease",
-            "&:hover": {
-              backgroundColor: theme.palette.primary.light,
-              color: theme.palette.primary.contrastText,
-            },
-          }}
-        >
-          <Typography variant="body2" fontWeight="medium">
-            ₹{total.toFixed(2)}
-          </Typography>
-        </Box>
-      </Zoom>
-
-      {/* Main FAB button */}
-      <Fab
-        color="primary"
-        aria-label="cart"
-        onClick={onClick}
-        disabled={disabled}
-        size="large"
+return (
+  <Box
+    sx={{
+      display: 'flex',
+      flexDirection: 'column', // Stack components vertically on mobile
+      alignItems: 'center',
+      gap: 1.5,
+      position: 'relative',
+      justifyContent: 'center', // Center the content on mobile
+    }}
+  >
+    {/* Total Price Pill */}
+    <Zoom in={showTotal && itemCount > 0 && total > 0}>
+      <Box
         sx={{
-          boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
-          transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+          backgroundColor: theme.palette.background.paper,
+          color: theme.palette.text.primary,
+          borderRadius: 4,
+          py: 0.5,
+          px: 1.5,
+          minWidth: 80,
+          textAlign: 'center',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          border: `1px solid ${theme.palette.divider}`,
+          transition: 'all 0.2s ease',
+          zIndex: 2,
           '&:hover': {
-            transform: 'scale(1.08)',
-            boxShadow: '0 6px 16px rgba(0,0,0,0.3)',
+            backgroundColor: theme.palette.primary.light,
+            color: theme.palette.primary.contrastText,
           },
-          '&:active': {
-            transform: 'scale(0.95)',
-          },
-          // Subtle pulse animation when items in cart
-          ...(itemCount > 0 && {
-            animation: itemCount === 1 ? 'pulse 2s ease-in-out' : 'none',
-            '@keyframes pulse': {
-              '0%': { boxShadow: `0 0 0 0 ${theme.palette.primary.main}50` },
-              '70%': { boxShadow: `0 0 0 12px ${theme.palette.primary.main}00` },
-              '100%': { boxShadow: `0 0 0 0 ${theme.palette.primary.main}00` },
-            }
-          })
+          fontSize: { xs: '0.75rem', sm: '0.875rem' },
         }}
       >
-        <Badge
-          badgeContent={itemCount}
-          color="error"
-          max={99}
-          sx={{
-            '& .MuiBadge-badge': {
-              fontSize: '0.75rem',
-              fontWeight: 'bold',
-              minWidth: '20px',
-              height: '20px',
-              borderRadius: '10px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
-              transition: 'transform 0.2s',
-              transform: itemCount > 0 ? 'scale(1)' : 'scale(0.5)',
-            }
-          }}
-        >
-          <ShoppingCart size={24} />
-        </Badge>
-      </Fab>
+        <Typography variant="body2" fontWeight="medium">
+          ₹{total.toFixed(2)}
+        </Typography>
+      </Box>
+    </Zoom>
 
-      {/* Optional: Indicator for empty cart */}
+    {/* Confirm Items Label */}
+    {itemCount > 0 && (
+      <Typography
+        variant="body2"
+        sx={{
+          color: theme.palette.text.primary,
+          fontWeight: 'bold',
+          userSelect: 'none',
+          cursor: 'pointer',
+          display: 'inline-block',
+          transition: 'color 0.3s ease',
+          whiteSpace: 'nowrap',
+          fontSize: { xs: '0.85rem', sm: '1rem' },
+          '&:hover': {
+            color: theme.palette.primary.main,
+          },
+        }}
+        onClick={onClick}
+      >
+        Review ✅👇
+      </Typography>
+    )}
+
+    {/* Cart Button */}
+    <Fab
+      color="primary"
+      aria-label="cart"
+      onClick={onClick}
+      disabled={disabled}
+      size="medium"
+      sx={{
+        boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
+        transition: 'all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
+        '&:hover': {
+          transform: 'scale(1.08)',
+          boxShadow: '0 6px 16px rgba(0,0,0,0.3)',
+        },
+        '&:active': {
+          transform: 'scale(0.95)',
+        },
+        ...(itemCount > 0 && {
+          animation: itemCount === 1 ? 'pulse 2s ease-in-out' : 'none',
+          '@keyframes pulse': {
+            '0%': { boxShadow: `0 0 0 0 ${theme.palette.primary.main}50` },
+            '70%': { boxShadow: `0 0 0 12px ${theme.palette.primary.main}00` },
+            '100%': { boxShadow: `0 0 0 0 ${theme.palette.primary.main}00` },
+          },
+        }),
+      }}
+    >
+      <Badge
+        badgeContent={itemCount}
+        color="error"
+        max={99}
+        sx={{
+          '& .MuiBadge-badge': {
+            fontSize: '0.75rem',
+            fontWeight: 'bold',
+            minWidth: '20px',
+            height: '20px',
+            borderRadius: '10px',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+            transition: 'transform 0.2s',
+            transform: itemCount > 0 ? 'scale(1)' : 'scale(0.5)',
+          },
+        }}
+      >
+        <ShoppingCart size={24} />
+      </Badge>
+    </Fab>
+    {/* Optional: Indicator for empty cart */}
       {itemCount === 0 && (
         <Box
           sx={{
@@ -116,8 +144,8 @@ const FloatingCartButton: React.FC<FloatingCartButtonProps> = ({
           }}
         />
       )}
-    </Box>
-  );
+  </Box>
+);
 };
 
 export default FloatingCartButton;
