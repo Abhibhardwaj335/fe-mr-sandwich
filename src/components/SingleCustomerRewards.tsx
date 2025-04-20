@@ -143,6 +143,7 @@ const RewardRow: React.FC<{
             onChange={(e) => setEditPoints(Number(e.target.value))}
             size="small"
             fullWidth
+            InputProps={{ sx: { minWidth: 80 } }} // <- Give it room to breathe
           />
         ) : (
           reward.rewardPoints

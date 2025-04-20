@@ -231,6 +231,31 @@ const OrderPage: React.FC = () => {
     }
   };
 
+  const handleRedeemRewardPoints = async (pointsToRedeem: number) => {
+    if (!customerPhone || pointsToRedeem <= 0) {
+      return false;
+    }
+
+    try {
+      const response = await axios.put(
+        `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/rewards/redeem`,
+        {
+          phoneNumber: localPhone, // Using local phone since that's what your backend expects
+          pointsToRedeem
+        }
+      );
+
+      console.log("✅ Reward points redeemed successfully:", response.data);
+      return true;
+    } catch (err) {
+      console.error("❌ Error redeeming reward points:", err);
+      const errorMessage = (err as any).response?.data?.message || "Failed to redeem reward points";
+      alert(`Note: ${errorMessage}\nYour order will still be placed.`);
+      return false;
+    }
+  };
+
+  // Update the handleSubmitOrder function
   const handleSubmitOrder = async () => {
     if (!customerName || !customerPhone) {
       alert("Please enter your name and phone number.");
@@ -251,8 +276,26 @@ const OrderPage: React.FC = () => {
       alert("Please select a payment method.");
       return;
     }
-    const orderTotal = totalAfterDiscount || selectedItems.reduce((sum, i) => sum + i.price * i.count, 0);
+
     setLoading(true);
+
+    // Calculate original order total before discounts
+    const originalOrderTotal = selectedItems.reduce((sum, i) => sum + i.price * i.count, 0);
+
+    // Calculate points being redeemed (if any)
+    const pointsBeingRedeemed = originalOrderTotal !== totalAfterDiscount ?
+      Math.round((originalOrderTotal - totalAfterDiscount) * 10) : 0;
+
+    // If points are being redeemed, call the redemption API
+    if (pointsBeingRedeemed > 0) {
+      const redemptionSuccessful = await handleRedeemRewardPoints(pointsBeingRedeemed);
+
+      // If redemption failed but we still want to place the order,
+      // reset the total to original amount
+      if (!redemptionSuccessful) {
+          setTotalAfterDiscount(undefined);
+      }
+    }
     const orderPayload = {
       tableId: effectiveTableId,
       name: customerName,
@@ -261,7 +304,8 @@ const OrderPage: React.FC = () => {
         name, count, price,
       })),
       paymentDetails: paymentMethod,
-      total: orderTotal,
+      total: totalAfterDiscount !== undefined ? totalAfterDiscount : originalOrderTotal,
+      pointsRedeemed: pointsBeingRedeemed,
       timestamp: new Date().toISOString(),
     };
 
@@ -294,6 +338,7 @@ const OrderPage: React.FC = () => {
     }
   };
 
+  // Update the handleAddToExistingOrder function similarly
   const handleAddToExistingOrder = async () => {
     if (!orderId) {
       alert("No existing order to add items to.");
@@ -312,11 +357,30 @@ const OrderPage: React.FC = () => {
 
     setLoading(true);
 
+    // Calculate original order total before discounts
+    const originalOrderTotal = selectedItems.reduce((sum, i) => sum + i.price * i.count, 0);
+
+    // Calculate points being redeemed (if any)
+    const pointsBeingRedeemed = originalOrderTotal !== totalAfterDiscount ?
+      Math.round((originalOrderTotal - totalAfterDiscount) * 100) : 0;
+
+    // If points are being redeemed, call the redemption API
+    if (pointsBeingRedeemed > 0) {
+      const redemptionSuccessful = await handleRedeemRewardPoints(pointsBeingRedeemed);
+
+      // If redemption failed but we still want to place the order,
+      // reset the total to original amount
+      if (!redemptionSuccessful) {
+        setTotalAfterDiscount(originalOrderTotal);
+      }
+    }
+
     const orderPayload = {
       tableId: tableId,
       items: selectedItems,
       paymentDetails: paymentMethod,
-      total: selectedItems.reduce((sum, i) => sum + i.price * i.count, 0),
+      total: totalAfterDiscount || originalOrderTotal,
+      pointsRedeemed: pointsBeingRedeemed,
     };
 
     try {
@@ -326,7 +390,7 @@ const OrderPage: React.FC = () => {
       );
 
       // Send admin notification for order update
-      orderPayload.total=orderUpdateResponse.data.totalAmount;
+      orderPayload.total = orderUpdateResponse.data.totalAmount;
       await sendAdminWhatsAppNotification(orderPayload);
 
       setOrderPlaced(true);

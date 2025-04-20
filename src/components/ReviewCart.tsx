@@ -12,7 +12,7 @@ import {
   Chip,
 } from "@mui/material";
 import { PlusCircle, MinusCircle, XCircle, Gift } from "lucide-react";
-
+import CenteredFormLayout from "./CenteredFormLayout";
 interface CartItem {
   name: string;
   price: number;
@@ -71,20 +71,22 @@ const ReviewCart: React.FC<Props> = ({
   }, [paymentMethod, totalAfterRewards, total, setTotalAfterDiscount]);
 
   return (
+  <CenteredFormLayout>
     <Box>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-        {rewardPoints !== undefined && (
-          <Chip
-            icon={<Gift size={16} />}
-            label={`${rewardPoints} points`}
-            color="primary"
-            variant="outlined"
-            size="small"
-          />
-        )}
-      </Box>
-
-      <Divider sx={{ mb: 2 }} />
+      {rewardPoints > 0 && (
+        <>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
+            <Chip
+              icon={<Gift size={16} />}
+              label={`${rewardPoints} points`}
+              color="primary"
+              variant="outlined"
+              size="small"
+            />
+          </Box>
+          <Divider sx={{ mb: 2 }} />
+        </>
+      )}
 
       <Button variant="outlined" onClick={onBack} sx={{ mb: 2 }}>
         Back to Menu
@@ -167,6 +169,7 @@ const ReviewCart: React.FC<Props> = ({
         {loading ? "Processing..." : orderPlaced ? "Add to Existing Order" : "Place Order"}
       </Button>
     </Box>
+    </CenteredFormLayout>
   );
 };
 
