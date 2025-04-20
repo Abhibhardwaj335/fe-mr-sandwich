@@ -57,7 +57,7 @@ export default function MainLayout({ children, isAuthenticated, setIsAuthenticat
 
   const filteredNavItems = navItems.filter((item) => {
     if (!isAuthenticated) {
-      return ["/order", "/generate-qr", "/login"].includes(item.to);
+      return ["/order", "/login"].includes(item.to);
     } else {
       return item.to !== "/login";
     }

@@ -33,11 +33,14 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/login" element={<Login onLogin={handleLogin} />} />
             <Route path="/order" element={<OrderPage />} />
-            <Route path="/generate-qr" element={<GenerateQRCode />} />
-
             <Route path="/" element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <CustomerForm />
+              </ProtectedRoute>
+            } />
+            <Route path="/generate-qr" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <GenerateQRCode />
               </ProtectedRoute>
             } />
             <Route path="/send-whatsapp" element={
