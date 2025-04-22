@@ -27,8 +27,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Slide,
-  Chip
+  Slide
 } from "@mui/material";
 import {
   ShoppingCart,
@@ -92,7 +91,6 @@ const ReviewCart: React.FC<Props> = ({
   orderPlaced,
   rewardPoints = 0,
   setTotalAfterDiscount,
-  pointsToEarn = 0,
 }) => {
   const notify = useNotify();
   const theme = useTheme();
