@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Box,
   Typography,
@@ -18,10 +18,32 @@ import {
   Paper,
   Stack,
   Badge,
+  useTheme,
+  Tooltip,
+  Checkbox,
+  FormControlLabel,
   alpha,
-  useTheme
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Slide,
+  Chip
 } from "@mui/material";
-import { ShoppingCart, PlusCircle, MinusCircle, XCircle, Gift, ArrowLeft, Check } from "lucide-react";
+import {
+  ShoppingCart,
+  PlusCircle,
+  MinusCircle,
+  XCircle,
+  Gift,
+  ArrowLeft,
+  Check,
+  Clock,
+  CreditCard,
+  DollarSign
+} from "lucide-react";
+import { TransitionProps } from "@mui/material/transitions";
+import { useNotify } from '../components/NotificationContext';
 
 interface CartItem {
   name: string;
@@ -44,7 +66,18 @@ interface Props {
   orderPlaced: boolean;
   rewardPoints?: number;
   setTotalAfterDiscount: (total: number) => void;
+  pointsToEarn?: number;
 }
+
+// Slide transition for confirmation dialog
+const Transition = React.forwardRef(function Transition(
+  props: TransitionProps & {
+    children: React.ReactElement;
+  },
+  ref: React.Ref<unknown>,
+) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
 
 const ReviewCart: React.FC<Props> = ({
   selectedItems,
@@ -57,32 +90,54 @@ const ReviewCart: React.FC<Props> = ({
   setPaymentMethod,
   loading,
   orderPlaced,
-  rewardPoints,
+  rewardPoints = 0,
   setTotalAfterDiscount,
+  pointsToEarn = 0,
 }) => {
+  const notify = useNotify();
   const theme = useTheme();
+  const [useRewards, setUseRewards] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+
   const total = selectedItems.reduce((sum, item) => sum + item.price * item.count, 0);
-  const rewardDiscount = paymentMethod === "Rewards" && rewardPoints && rewardPoints >= 100
-    ? Math.min(rewardPoints / 10, total)
+
+  // Calculate how many points can be redeemed (maximum 5 points per ₹1)
+  const maxPointsToRedeem = Math.min(rewardPoints, Math.floor(total * 5));
+
+  // Calculate the discount (5 points = ₹1)
+  const rewardDiscount = useRewards && rewardPoints >= 100
+    ? Math.min(maxPointsToRedeem / 5, total) // Convert points to rupees (5 points = ₹1)
     : 0;
 
-  const totalAfterRewards = (total - rewardDiscount).toFixed(2);
+  const totalAfterRewards = Math.max(0, total - rewardDiscount);
+  const pointsBeingUsed = rewardDiscount * 5; // Points actually being used
+
+  // Estimated delivery time (sample logic)
+  const estimatedMinutes = 25 + (selectedItems.length * 5);
 
   const handleSubmit = () => {
-    onSubmit(parseFloat(totalAfterRewards));
+    if (!paymentMethod) {
+      notify("Please select a payment method.");
+      return;
+    }
+    if (orderPlaced) {
+      // Skip confirmation if adding to existing order
+      onSubmit(totalAfterRewards);
+    } else {
+      // Show confirmation dialog
+      setShowConfirmation(true);
+    }
+  };
+
+  const confirmOrder = () => {
+    setShowConfirmation(false);
+    onSubmit(totalAfterRewards);
   };
 
   // Update totalAfterDiscount in the parent component
   useEffect(() => {
-    if (paymentMethod === "Rewards") {
-      setTotalAfterDiscount(parseFloat(totalAfterRewards));
-    } else {
-      setTotalAfterDiscount(parseFloat(total.toFixed(2)));
-    }
-  }, [paymentMethod, totalAfterRewards, total, setTotalAfterDiscount]);
-
-  // Count total items in cart
-  const itemCount = selectedItems.reduce((count, item) => count + item.count, 0);
+    setTotalAfterDiscount(useRewards ? totalAfterRewards : total);
+  }, [useRewards, totalAfterRewards, total, setTotalAfterDiscount]);
 
   return (
     <Box sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -92,29 +147,23 @@ const ReviewCart: React.FC<Props> = ({
         backgroundColor: theme.palette.background.paper
       }}>
         <Toolbar>
-          <IconButton edge="start" color="inherit" onClick={onBack} aria-label="back">
+          <IconButton edge="start" color="inherit" onClick={onBack} aria-label="back" sx={{ mr: 1 }}>
             <ArrowLeft />
           </IconButton>
-          <Typography variant="h6" sx={{ ml: 1, flexGrow: 1 }}>
+          <Typography variant="h6" sx={{ flexGrow: 1 }}>
             Your Order
           </Typography>
-          <Badge badgeContent={itemCount} color="primary">
-            <ShoppingCart />
-          </Badge>
+          {rewardPoints > 0 && (
+            <Tooltip title={`You have ${rewardPoints} reward points (₹${(rewardPoints/5).toFixed(0)} value)`}>
+              <IconButton color="primary" size="small" sx={{ mr: 1 }}>
+                <Badge badgeContent={rewardPoints} color="primary" max={999}>
+                  <Gift size={40} />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+          )}
         </Toolbar>
       </AppBar>
-
-      {/* Reward Points Display */}
-      {typeof rewardPoints === "number" && rewardPoints > 0 && (
-        <Box sx={{ p: 2, backgroundColor: alpha(theme.palette.primary.main, 0.05) }}>
-          <Stack direction="row" spacing={1} alignItems="center">
-            <Gift size={40} color={theme.palette.primary.main} />
-            <Typography variant="body2" color="primary.main" fontWeight="medium">
-              You have <strong>{rewardPoints}</strong> reward points. Choose Rewards as payment to redeem them.
-            </Typography>
-          </Stack>
-        </Box>
-      )}
 
       {/* Cart Items */}
       <Box sx={{ flex: 1, overflowY: 'auto', px: 2, py: 1 }}>
@@ -239,27 +288,58 @@ const ReviewCart: React.FC<Props> = ({
               label="Payment Method"
               sx={{ borderRadius: 2 }}
             >
-              <MenuItem value="Cash">Cash</MenuItem>
-              <MenuItem value="Online">Online</MenuItem>
-              {rewardPoints && rewardPoints >= 100 && (
-                <MenuItem value="Rewards">
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Gift size={16} />
-                    <span>Use Reward Points (100 pts = ₹10 off)</span>
-                  </Stack>
-                </MenuItem>
-              )}
+              <MenuItem value="Cash" sx={{ py: 1.5 }}>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <DollarSign size={18} />
+                  <Typography>Cash</Typography>
+                </Stack>
+              </MenuItem>
+              <MenuItem value="Online" sx={{ py: 1.5 }}>
+                <Stack direction="row" spacing={1.5} alignItems="center">
+                  <CreditCard size={18} />
+                  <Typography>Online Payment</Typography>
+                </Stack>
+              </MenuItem>
             </Select>
           </FormControl>
 
-          <Divider sx={{ my: 2 }} />
-
+          {/* Rewards Checkbox with Better Explanation */}
+          {rewardPoints >= 100 && (
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                mb: 2,
+                p: 1.5,
+                border: `1px solid ${useRewards ? theme.palette.primary.main : theme.palette.divider}`,
+                borderRadius: 2,
+                backgroundColor: useRewards ? alpha(theme.palette.primary.light, 0.1) : 'transparent',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={useRewards}
+                    onChange={(e) => setUseRewards(e.target.checked)}
+                    color="primary"
+                  />
+                }
+                label={
+                  <Typography variant="body1" fontWeight={useRewards ? 500 : 400}>
+                    Use my reward points.                 5 points = ₹1 discount • Up to: ₹{(maxPointsToRedeem / 5).toFixed(2)}
+                  </Typography>
+                }
+                sx={{ m: 0 }}
+              />
+            </Box>
+          )}
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
             <Typography variant="body1" color="text.secondary">Subtotal:</Typography>
             <Typography variant="body1">₹{total.toFixed(2)}</Typography>
           </Box>
 
-          {paymentMethod === "Rewards" && rewardPoints && rewardPoints >= 100 && (
+          {useRewards && rewardPoints >= 100 && (
             <>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="body1" color="primary">
@@ -268,26 +348,26 @@ const ReviewCart: React.FC<Props> = ({
                     <span>Reward Discount:</span>
                   </Stack>
                 </Typography>
-                <Typography variant="body1" color="primary">- ₹{rewardDiscount.toFixed(2)}</Typography>
+                <Typography variant="body1" fontWeight="medium" color="primary">- ₹{rewardDiscount.toFixed(2)}</Typography>
               </Box>
 
               <Divider sx={{ my: 2 }} />
 
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                 <Typography variant="h6">Total:</Typography>
-                <Typography variant="h6" color="primary.main">₹{totalAfterRewards}</Typography>
+                <Typography variant="h5" fontWeight="bold" color="primary.main">₹{totalAfterRewards.toFixed(2)}</Typography>
               </Box>
 
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-                Using {Math.min(rewardPoints, Math.floor(total * 10))} reward points for discount
+                Using {Math.round(pointsBeingUsed)} reward points for discount
               </Typography>
             </>
           )}
 
-          {paymentMethod !== "Rewards" && (
+          {(!useRewards || rewardPoints < 100) && (
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
               <Typography variant="h6">Total:</Typography>
-              <Typography variant="h6">₹{total.toFixed(2)}</Typography>
+              <Typography variant="h5" fontWeight="bold">₹{total.toFixed(2)}</Typography>
             </Box>
           )}
 
@@ -295,11 +375,13 @@ const ReviewCart: React.FC<Props> = ({
             variant="contained"
             fullWidth
             onClick={handleSubmit}
-            disabled={loading || selectedItems.length === 0}
+            disabled={loading || selectedItems.length === 0 }
             sx={{
               py: 1.5,
               borderRadius: 2,
-              boxShadow: 2
+              boxShadow: 2,
+              fontSize: '1rem',
+              textTransform: 'none'
             }}
             startIcon={orderPlaced ? <Check /> : null}
           >
@@ -307,6 +389,70 @@ const ReviewCart: React.FC<Props> = ({
           </Button>
         </Paper>
       )}
+
+      {/* Order Confirmation Dialog */}
+      <Dialog
+        open={showConfirmation}
+        TransitionComponent={Transition}
+        keepMounted
+        onClose={() => setShowConfirmation(false)}
+        aria-describedby="confirm-order-dialog"
+        maxWidth="xs"
+        fullWidth
+      >
+        <DialogTitle>Confirm Your Order</DialogTitle>
+        <DialogContent>
+          <Box sx={{ mb: 2 }}>
+            <Typography component="span" variant="body1" color="primary">
+              You're about to place an order with {selectedItems.length} item(s) for a total of
+              <Typography component="span" fontWeight="bold" color="primary.main"> ₹{(useRewards ? totalAfterRewards : total).toFixed(2)}</Typography>.
+            </Typography>
+
+            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Clock size={16} style={{ marginRight: 8 }} />
+              Estimated time: {estimatedMinutes} minutes
+            </Typography>
+
+            <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
+              <CreditCard size={16} style={{ marginRight: 8 }} />
+              Payment method: {paymentMethod}
+            </Typography>
+
+            {useRewards && (
+              <Box sx={{
+                mt: 2,
+                p: 1.5,
+                borderRadius: 1,
+                backgroundColor: alpha(theme.palette.primary.main, 0.08),
+                display: 'flex',
+                alignItems: 'center'
+              }}>
+                <Gift size={18} color={theme.palette.primary.main} style={{ marginRight: 8 }} />
+                <Typography variant="body2" color="primary.main">
+                  Using {Math.round(pointsBeingUsed)} reward points for ₹{rewardDiscount.toFixed(2)} discount
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3 }}>
+          <Button
+            onClick={() => setShowConfirmation(false)}
+            variant="outlined"
+            sx={{ borderRadius: 2 }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={confirmOrder}
+            variant="contained"
+            sx={{ borderRadius: 2 }}
+            autoFocus
+          >
+            Confirm Order
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

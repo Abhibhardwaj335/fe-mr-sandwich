@@ -15,7 +15,11 @@ import {
   Typography,
   CircularProgress,
   IconButton,
-  Drawer
+  Drawer,
+  Alert,
+  Snackbar,
+  Tooltip,
+  Badge
 } from "@mui/material";
 import CategorySelector from "../components/order/CategorySelector";
 import SubcategorySection from "../components/order/SubcategorySection";
@@ -80,6 +84,10 @@ const OrderPage: React.FC = () => {
   const [fetchingCustomer, setFetchingCustomer] = useState<boolean>(false);
   const [showRewards, setShowRewards] = useState<boolean>(false);
   const [totalAfterDiscount, setTotalAfterDiscount] = useState<any>(0);
+  const [rewardError, setRewardError] = useState<string | null>(null);
+  const [rewardSuccess, setRewardSuccess] = useState<string | null>(null);
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [pointsToEarn, setPointsToEarn] = useState<number>(0);
 
   const urlTableId = new URLSearchParams(window.location.search).get("tableId") || "";
   const effectiveTableId = urlTableId || manualTableId;
@@ -89,6 +97,15 @@ const OrderPage: React.FC = () => {
   // Customer information
   const customerName = name;
   const customerPhone = `${countryCode}${localPhone}`;
+
+  // Calculate points to earn from current order
+  useEffect(() => {
+    // Calculate total amount of current order
+    const currentOrderTotal = selectedItems.reduce((sum, i) => sum + i.price * i.count, 0);
+    // Calculate points - simple calculation: 1 point per ₹1 spent
+    const estimatedPoints = Math.floor(currentOrderTotal);
+    setPointsToEarn(estimatedPoints);
+  }, [selectedItems]);
 
   // Add debounce utility
   const useDebounce = (value: string, delay: number) => {
@@ -116,6 +133,19 @@ const OrderPage: React.FC = () => {
     }
   }, [debouncedPhone, countryCode]);
 
+  // Reset error states when closing snackbars
+  const handleCloseRewardError = () => {
+    setRewardError(null);
+  };
+
+  const handleCloseRewardSuccess = () => {
+    setRewardSuccess(null);
+  };
+
+  const handleCloseFetchError = () => {
+    setFetchError(null);
+  };
+
   // Fetch customer data by phone number
   const fetchCustomerData = async () => {
     if (!localPhone) {
@@ -123,6 +153,7 @@ const OrderPage: React.FC = () => {
     }
 
     setFetchingCustomer(true);
+    setFetchError(null);
 
     try {
       const response = await axios.get(
@@ -156,6 +187,7 @@ const OrderPage: React.FC = () => {
     } catch (err) {
       console.error("Error fetching customer data:", err);
       setCustomerData(null);
+      setFetchError("Failed to fetch customer rewards. Please try again later.");
     } finally {
       setFetchingCustomer(false);
     }
@@ -237,44 +269,81 @@ const OrderPage: React.FC = () => {
       return false;
     }
 
+    // Additional validation - check if customer has enough points
+    if (!customerData || customerData.totalRewardPoints < pointsToRedeem) {
+      setRewardError(`Not enough reward points. You have ${customerData?.totalRewardPoints || 0} points but tried to redeem ${pointsToRedeem} points.`);
+      return false;
+    }
+
+    // Prevent negative points
+    if (customerData.totalRewardPoints - pointsToRedeem < 0) {
+      setRewardError("Cannot redeem more points than available.");
+      return false;
+    }
+
     try {
       const response = await axios.put(
         `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/rewards/redeem`,
         {
-          phoneNumber: localPhone, // Using local phone since that's what your backend expects
+          phoneNumber: localPhone,
           pointsToRedeem
         }
       );
 
       console.log("✅ Reward points redeemed successfully:", response.data);
+
+      // Show success message
+      setRewardSuccess(`Successfully redeemed ${pointsToRedeem} points for a discount of ₹${(pointsToRedeem / 5).toFixed(2)}!`);
+
+      // Update customer data with new point balance
+      if (customerData) {
+        setCustomerData({
+          ...customerData,
+          totalRewardPoints: customerData.totalRewardPoints - pointsToRedeem
+        });
+      }
+
       return true;
     } catch (err) {
       console.error("❌ Error redeeming reward points:", err);
       const errorMessage = (err as any).response?.data?.message || "Failed to redeem reward points";
-      notify(`Note: ${errorMessage}\nYour order will still be placed.`);
+      setRewardError(errorMessage);
       return false;
     }
   };
 
   const handleAddPurchaseRewardPoints = async (amount: number, phoneNumber: string) => {
-    const rewardPoints = Math.floor(amount / 100) * 10; // 10 points per ₹100
+    const rewardPoints = amount;
 
-    if (rewardPoints === 0) return; // Skip if under ₹100
+    if (rewardPoints <= 0) return; // Skip if no points to add
 
     const rewardPayload = {
       rewardType: "Online Purchase",
       rewardPoints,
-      rewardPeriod: "Monthly", // or "Weekly" if needed
+      rewardPeriod: "Monthly",
       phoneNumber
     };
 
     try {
-      await axios.post(`${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/rewards`, rewardPayload, {
-        params: { id: phoneNumber }
-      });
-      console.log("✅ Reward points added for purchase");
+      const response = await axios.post(
+        `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/rewards`,
+        rewardPayload,
+        { params: { id: phoneNumber } }
+      );
+
+      console.log("✅ Reward points added for purchase:", response.data);
+      setRewardSuccess(`You earned ${rewardPoints} reward points from this purchase!`);
+
+      // Update local customer data with new points
+      if (customerData) {
+        setCustomerData({
+          ...customerData,
+          totalRewardPoints: customerData.totalRewardPoints + rewardPoints
+        });
+      }
     } catch (err) {
       console.error("❌ Failed to add purchase reward points:", err);
+      setRewardError("Failed to add reward points for your purchase. Please contact support.");
     }
   };
 
@@ -307,18 +376,23 @@ const OrderPage: React.FC = () => {
 
     // Calculate points being redeemed (if any)
     const pointsBeingRedeemed = originalOrderTotal !== totalAfterDiscount ?
-      Math.round((originalOrderTotal - totalAfterDiscount) * 10) : 0;
+      Math.round((originalOrderTotal - totalAfterDiscount) * 5) : 0;
 
     // If points are being redeemed, call the redemption API
+    let finalOrderTotal = originalOrderTotal;
     if (pointsBeingRedeemed > 0) {
       const redemptionSuccessful = await handleRedeemRewardPoints(pointsBeingRedeemed);
 
       // If redemption failed but we still want to place the order,
       // reset the total to original amount
       if (!redemptionSuccessful) {
-          setTotalAfterDiscount(undefined);
+        setTotalAfterDiscount(undefined);
+        finalOrderTotal = originalOrderTotal;
+      } else {
+        finalOrderTotal = totalAfterDiscount;
       }
     }
+
     const orderPayload = {
       tableId: effectiveTableId,
       name: customerName,
@@ -327,7 +401,7 @@ const OrderPage: React.FC = () => {
         name, count, price,
       })),
       paymentDetails: paymentMethod,
-      total: totalAfterDiscount !== undefined ? totalAfterDiscount : originalOrderTotal,
+      total: finalOrderTotal,
       pointsRedeemed: pointsBeingRedeemed,
       timestamp: new Date().toISOString(),
     };
@@ -347,7 +421,7 @@ const OrderPage: React.FC = () => {
       setCartDrawerOpen(false);
 
       // Add reward points for this purchase
-      await handleAddPurchaseRewardPoints(orderPayload.total, localPhone);
+      await handleAddPurchaseRewardPoints(pointsToEarn, localPhone);
 
       // Send WhatsApp notification to admin
       await sendAdminWhatsAppNotification(orderPayload);
@@ -388,9 +462,10 @@ const OrderPage: React.FC = () => {
 
     // Calculate points being redeemed (if any)
     const pointsBeingRedeemed = originalOrderTotal !== totalAfterDiscount ?
-      Math.round((originalOrderTotal - totalAfterDiscount) * 100) : 0;
+      Math.round((originalOrderTotal - totalAfterDiscount) * 5) : 0;
 
     // If points are being redeemed, call the redemption API
+    let finalOrderTotal = originalOrderTotal;
     if (pointsBeingRedeemed > 0) {
       const redemptionSuccessful = await handleRedeemRewardPoints(pointsBeingRedeemed);
 
@@ -398,6 +473,9 @@ const OrderPage: React.FC = () => {
       // reset the total to original amount
       if (!redemptionSuccessful) {
         setTotalAfterDiscount(originalOrderTotal);
+        finalOrderTotal = originalOrderTotal;
+      } else {
+        finalOrderTotal = totalAfterDiscount;
       }
     }
 
@@ -405,7 +483,7 @@ const OrderPage: React.FC = () => {
       tableId: tableId,
       items: selectedItems,
       paymentDetails: paymentMethod,
-      total: totalAfterDiscount || originalOrderTotal,
+      total: finalOrderTotal,
       pointsRedeemed: pointsBeingRedeemed,
     };
 
@@ -418,7 +496,7 @@ const OrderPage: React.FC = () => {
       orderPayload.total = orderUpdateResponse.data.totalAmount;
 
       // Add reward points for this purchase
-      // await handleAddPurchaseRewardPoints(orderPayload.total, customerPhone);
+      await handleAddPurchaseRewardPoints(pointsToEarn, localPhone);
 
       // Send admin notification for order update
       await sendAdminWhatsAppNotification(orderPayload);
@@ -452,6 +530,25 @@ const OrderPage: React.FC = () => {
         customerInfoSet={customerInfoSet}
       />
 
+      {/* Error and success alerts */}
+      <Snackbar open={!!rewardError} autoHideDuration={6000} onClose={handleCloseRewardError}>
+        <Alert onClose={handleCloseRewardError} severity="error" sx={{ width: '100%' }}>
+          {rewardError}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar open={!!rewardSuccess} autoHideDuration={6000} onClose={handleCloseRewardSuccess}>
+        <Alert onClose={handleCloseRewardSuccess} severity="success" sx={{ width: '100%' }}>
+          {rewardSuccess}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar open={!!fetchError} autoHideDuration={6000} onClose={handleCloseFetchError}>
+        <Alert onClose={handleCloseFetchError} severity="warning" sx={{ width: '100%' }}>
+          {fetchError}
+        </Alert>
+      </Snackbar>
+
       {!customerInfoSet ? (
         <Box sx={{ mt: 2 }}>
           <TextField
@@ -461,6 +558,7 @@ const OrderPage: React.FC = () => {
             variant="outlined"
             value={name}
             onChange={(e) => setName(e.target.value)}
+            required
           />
 
           <Box sx={{ display: "flex", gap: 1, mt: 2 }}>
@@ -487,6 +585,7 @@ const OrderPage: React.FC = () => {
               value={localPhone}
               onChange={(e) => setLocalPhone(e.target.value)}
               sx={{ flex: 2 }}
+              required
               InputProps={{
                 endAdornment: (
                   <IconButton
@@ -550,16 +649,19 @@ const OrderPage: React.FC = () => {
                 mb: 2,
               }}
             >
-              <Typography variant="body2" sx={{ mr: 1 }}>
-                Rewards: <strong>{customerData.totalRewardPoints}</strong>
-              </Typography>
-              <IconButton
-                size="small"
-                color="primary"
-                onClick={() => setShowRewards(!showRewards)}
-              >
-                <Gift size={16} />
+            {/* Points to earn notification */}
+            {pointsToEarn > 0 && (
+              <Alert severity="info" sx={{ mb: 2 }}>
+                  You'll earn <strong>{pointsToEarn}</strong> points!
+              </Alert>
+            )}
+            <Tooltip title={`You have ${customerData.totalRewardPoints} reward points (₹${(customerData.totalRewardPoints/5).toFixed(0)} value)`}>
+              <IconButton color="primary" size="small" sx={{ mr: 1 }} onClick={() => setShowRewards(!showRewards)}>
+                <Badge badgeContent={customerData.totalRewardPoints} color="primary" max={999}>
+                  <Gift size={40} />
+                </Badge>
               </IconButton>
+            </Tooltip>
             </Box>
           )}
 
@@ -641,6 +743,7 @@ const OrderPage: React.FC = () => {
           orderPlaced={orderPlaced}
           rewardPoints={customerData?.totalRewardPoints}
           setTotalAfterDiscount={setTotalAfterDiscount}
+          pointsToEarn={pointsToEarn}
         />
       </Drawer>
     </CenteredFormLayout>
