@@ -6,6 +6,7 @@ import SendWhatsApp from "./pages/SendWhatsApp";
 import ManageRewards from "./pages/ManageRewards";
 import CouponManager from "./pages/CouponManager";
 import CustomerDashboard from "./pages/CustomerDashboard";
+import ExpenseDashboard from "./pages/ExpenseDashboard";
 import OrderPage from "./pages/OrderPage";
 import GenerateQRCode from "./pages/GenerateQRCode";
 import Login from "./pages/Login";
@@ -61,6 +62,11 @@ const App: React.FC = () => {
             <Route path="/customer-dashboard" element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <CustomerDashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/expense-dashboard" element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <ExpenseDashboard />
               </ProtectedRoute>
             } />
           </Routes>

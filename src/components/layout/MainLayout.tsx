@@ -37,6 +37,7 @@ const navItems = [
   { to: "/rewards", label: "Manage Rewards", icon: <Gift /> },
   { to: "/coupons", label: "Manage Coupons", icon: <Ticket /> },
   { to: "/customer-dashboard", label: "Customer Dashboard", icon: <LayoutDashboard /> },
+  { to: "/expense-dashboard", label: "Expense Dashboard", icon: <LayoutDashboard /> },
   { to: "/login", label: "Login", icon: <LogIn /> },
 ];
 
