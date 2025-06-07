@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, TrendingUp, ShoppingCart, BarChart3 } from 'lucide-react';
 import CenteredFormLayout from "../components/CenteredFormLayout";
 import axios from "axios";
+import dayjs from 'dayjs';
 import {
   Box
 } from "@mui/material";
@@ -88,8 +89,8 @@ const FinancialTracker = () => {
   const [editingExpense, setEditingExpense] = useState<Expense | null>(null);
   const [editingSale, setEditingSale] = useState<Sale | null>(null);
   const [loading, setLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [selectedDate, setSelectedDate] = useState(dayjs().format('YYYY-MM-DD'));
+  const [selectedMonth, setSelectedMonth] = useState(dayjs().format('YYYY-MM'));
   const [viewMode, setViewMode] = useState<'daily' | 'monthly'>('daily');
   const [error, setError] = useState<string | null>(null);
 
@@ -98,7 +99,7 @@ const FinancialTracker = () => {
     category: '',
     description: '',
     amount: '',
-    date: new Date().toISOString().split('T')[0],
+    date: dayjs().format('YYYY-MM-DD'),
     paymentMethod: 'cash',
     vendor: '',
     notes: ''
@@ -109,7 +110,7 @@ const FinancialTracker = () => {
     category: '',
     quantity: '',
     unitPrice: '',
-    date: new Date().toISOString().split('T')[0],
+    date: dayjs().format('YYYY-MM-DD'),
     paymentMethod: 'cash',
     customerName: '',
     notes: ''
@@ -356,7 +357,7 @@ const FinancialTracker = () => {
         category: '',
         description: '',
         amount: '',
-        date: new Date().toISOString().split('T')[0],
+        date: dayjs().format('YYYY-MM-DD'),
         paymentMethod: 'cash',
         vendor: '',
         notes: ''
@@ -435,7 +436,7 @@ const FinancialTracker = () => {
         category: '',
         quantity: '',
         unitPrice: '',
-        date: new Date().toISOString().split('T')[0],
+        date: dayjs().format('YYYY-MM-DD'),
         paymentMethod: 'cash',
         customerName: '',
         notes: ''
@@ -455,533 +456,531 @@ const FinancialTracker = () => {
   const stats = getFinancialStats();
 
   return (
-    <CenteredFormLayout title="Restaurant Expense Tracker" icon={<Receipt className="w-8 h-8 text-indigo-600"/>}>
-    <Box className="max-w-7xl mx-auto p-6 bg-gray-50 min-h-screen">
-      {/* Error Message */}
-      {error && (
-        <Box className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-6">
-          <strong className="font-bold">Error: </strong>
-          <span className="block sm:inline">{error}</span>
-        </Box>
-      )}
-
-      {/* Navigation Tabs */}
-      <Box className="bg-white rounded-2xl shadow-xl p-2 mb-6">
-        <Box className="flex space-x-2">
-          {[
-            { id: 'overview', label: 'Overview', icon: BarChart3 },
-            { id: 'expenses', label: 'Expenses', icon: Receipt },
-            { id: 'sales', label: 'Sales', icon: ShoppingCart }
-          ].map(({ id, label, icon: Icon }) => (
-            <button
-              key={id}
-              onClick={() => setActiveTab(id as any)}
-              className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-colors flex-1 justify-center ${
-                activeTab === id
-                  ? 'bg-indigo-600 text-white'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <Icon className="w-5 h-5" />
-              <span>{label}</span>
-            </button>
-          ))}
-        </Box>
-      </Box>
-
-      {/* View Mode and Date Controls */}
-      <Box className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-        <Box className="flex items-center justify-between mb-4">
-          <Box className="flex items-center space-x-4">
-            <button
-              onClick={() => setViewMode('daily')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                viewMode === 'daily'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Daily View
-            </button>
-            <button
-              onClick={() => setViewMode('monthly')}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                viewMode === 'monthly'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              Monthly View
-            </button>
+      <CenteredFormLayout title="Restaurant Expense Tracker" icon={<Receipt className="w-8 h-8 text-indigo-600"/>}>
+        {/* Error Message */}
+        {error && (
+          <Box className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl mb-6">
+            <strong className="font-bold">Error: </strong>
+            <span className="block sm:inline">{error}</span>
           </Box>
-          <Box className="flex items-center space-x-4">
-            {activeTab === 'expenses' && (
+        )}
+
+        {/* Navigation Tabs - Mobile Responsive */}
+        <Box className="bg-white rounded-2xl shadow-xl p-2 mb-6">
+          <Box className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+            {[
+              { id: 'overview', label: 'Overview', icon: BarChart3 },
+              { id: 'expenses', label: 'Expenses', icon: Receipt },
+              { id: 'sales', label: 'Sales', icon: ShoppingCart }
+            ].map(({ id, label, icon: Icon }) => (
               <button
-                onClick={() => setShowExpenseForm(!showExpenseForm)}
-                disabled={loading}
-                className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                key={id}
+                onClick={() => setActiveTab(id as any)}
+                className={`flex items-center justify-center space-x-2 px-4 py-3 rounded-xl font-medium transition-colors flex-1 ${
+                  activeTab === id
+                    ? 'bg-indigo-600 text-white'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
               >
-                <Plus className="w-4 h-4" />
-                <span>Add Expense</span>
+                <Icon className="w-5 h-5" />
+                <span className="text-sm sm:text-base">{label}</span>
               </button>
-            )}
-            {activeTab === 'sales' && (
+            ))}
+          </Box>
+        </Box>
+
+        {/* View Mode and Date Controls */}
+        <Box className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
+          <Box className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 space-y-4 sm:space-y-0">
+            <Box className="flex items-center space-x-2 sm:space-x-4">
               <button
-                onClick={() => setShowSaleForm(!showSaleForm)}
-                disabled={loading}
-                className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors disabled:opacity-50"
+                onClick={() => setViewMode('daily')}
+                className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
+                  viewMode === 'daily'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
               >
-                <Plus className="w-4 h-4" />
-                <span>Add Sale</span>
+                Daily View
               </button>
-            )}
-          </Box>
-        </Box>
-
-        <Box className="flex items-center space-x-4">
-          {viewMode === 'daily' ? (
-            <>
-              <label className="text-sm font-medium text-gray-700">Date:</label>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              />
-            </>
-          ) : (
-            <>
-              <label className="text-sm font-medium text-gray-700">Month:</label>
-              <input
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-              />
-            </>
-          )}
-        </Box>
-      </Box>
-
-      {/* Overview Tab */}
-      {activeTab === 'overview' && (
-        <>
-          {/* Summary Cards */}
-          <Box className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <Box className="bg-gradient-to-r from-green-400 to-green-600 rounded-xl p-6 text-white">
-              <Box className="flex items-center justify-between">
-                <Box>
-                  <p className="text-green-100">Total Sales</p>
-                  <p className="text-3xl font-bold">₹{stats.totalSales.toFixed(2)}</p>
-                </Box>
-                <ShoppingCart className="w-8 h-8 text-green-200" />
-              </Box>
+              <button
+                onClick={() => setViewMode('monthly')}
+                className={`px-3 sm:px-4 py-2 rounded-lg font-medium transition-colors text-sm ${
+                  viewMode === 'monthly'
+                    ? 'bg-indigo-600 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Monthly View
+              </button>
             </Box>
-
-            <Box className="bg-gradient-to-r from-red-400 to-red-600 rounded-xl p-6 text-white">
-              <Box className="flex items-center justify-between">
-                <Box>
-                  <p className="text-red-100">Total Expenses</p>
-                  <p className="text-3xl font-bold">₹{stats.totalExpenses.toFixed(2)}</p>
-                </Box>
-                <Receipt className="w-8 h-8 text-red-200" />
-              </Box>
-            </Box>
-
-            <Box className={`bg-gradient-to-r ${stats.netProfit >= 0 ? 'from-blue-400 to-blue-600' : 'from-orange-400 to-orange-600'} rounded-xl p-6 text-white`}>
-              <Box className="flex items-center justify-between">
-                <Box>
-                  <p className={`${stats.netProfit >= 0 ? 'text-blue-100' : 'text-orange-100'}`}>
-                    Net {stats.netProfit >= 0 ? 'Profit' : 'Loss'}
-                  </p>
-                  <p className="text-3xl font-bold">₹{Math.abs(stats.netProfit).toFixed(2)}</p>
-                </Box>
-                <TrendingUp className={`w-8 h-8 ${stats.netProfit >= 0 ? 'text-blue-200' : 'text-orange-200'}`} />
-              </Box>
-            </Box>
-
-            <Box className="bg-gradient-to-r from-purple-400 to-purple-600 rounded-xl p-6 text-white">
-              <Box className="flex items-center justify-between">
-                <Box>
-                  <p className="text-purple-100">Total Transactions</p>
-                  <p className="text-3xl font-bold">{stats.expenseCount + stats.saleCount}</p>
-                </Box>
-                <BarChart3 className="w-8 h-8 text-purple-200" />
-              </Box>
+            <Box className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+              {activeTab === 'expenses' && (
+                <button
+                  onClick={() => setShowExpenseForm(!showExpenseForm)}
+                  disabled={loading}
+                  className="flex items-center justify-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors disabled:opacity-50 text-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Expense</span>
+                </button>
+              )}
+              {activeTab === 'sales' && (
+                <button
+                  onClick={() => setShowSaleForm(!showSaleForm)}
+                  disabled={loading}
+                  className="flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-lg transition-colors disabled:opacity-50 text-sm"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Sale</span>
+                </button>
+              )}
             </Box>
           </Box>
 
-          {/* Additional Stats for Monthly View */}
-          {viewMode === 'monthly' && (
-            <Box className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">Monthly Insights</h3>
-              <Box className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Box className="bg-gradient-to-r from-indigo-400 to-indigo-600 rounded-xl p-4 text-white">
-                  <Box className="flex items-center justify-between">
-                    <Box>
-                      <p className="text-indigo-100">Avg Daily Sales</p>
-                      <p className="text-xl font-bold">₹{stats.averageDaily.sales.toFixed(2)}</p>
-                    </Box>
-                    <Calendar className="w-6 h-6 text-indigo-200" />
-                  </Box>
-                </Box>
-
-                <Box className="bg-gradient-to-r from-pink-400 to-pink-600 rounded-xl p-4 text-white">
-                  <Box className="flex items-center justify-between">
-                    <Box>
-                      <p className="text-pink-100">Avg Daily Expenses</p>
-                      <p className="text-xl font-bold">₹{stats.averageDaily.expenses.toFixed(2)}</p>
-                    </Box>
-                    <Calendar className="w-6 h-6 text-pink-200" />
-                  </Box>
-                </Box>
-
-                <Box className="bg-gradient-to-r from-teal-400 to-teal-600 rounded-xl p-4 text-white">
-                  <Box className="flex items-center justify-between">
-                    <Box>
-                      <p className="text-teal-100">Avg Daily Profit</p>
-                      <p className="text-xl font-bold">₹{stats.averageDaily.profit.toFixed(2)}</p>
-                    </Box>
-                    <TrendingUp className="w-6 h-6 text-teal-200" />
-                  </Box>
-                </Box>
-              </Box>
-
-              {/* Top Categories */}
-              <Box className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                <Box className="bg-gray-50 rounded-xl p-4">
-                  <h4 className="font-semibold text-gray-800 mb-2">Top Expense Category</h4>
-                  <p className="text-lg font-bold text-red-600">{stats.topExpenseCategory.category || 'N/A'}</p>
-                  <p className="text-xl font-bold">₹{stats.topExpenseCategory.amount.toFixed(2)}</p>
-                </Box>
-                <Box className="bg-gray-50 rounded-xl p-4">
-                  <h4 className="font-semibold text-gray-800 mb-2">Top Sales Category</h4>
-                  <p className="text-lg font-bold text-green-600">{stats.topSaleCategory.category || 'N/A'}</p>
-                  <p className="text-xl font-bold">₹{stats.topSaleCategory.amount.toFixed(2)}</p>
-                </Box>
-              </Box>
-            </Box>
-          )}
-        </>
-      )}
-
-      {/* Expenses Tab */}
-      {activeTab === 'expenses' && (
-        <>
-          {/* Expense Form */}
-          {showExpenseForm && (
-            <Box className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                {editingExpense ? 'Edit Expense' : 'Add New Expense'}
-              </h2>
-
-              <Box className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Box>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
-                  <select
-                    value={expenseFormData.category}
-                    onChange={(e) => setExpenseFormData(prev => ({...prev, category: e.target.value}))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    required
-                  >
-                    <option value="">Select Category</option>
-                    {expenseCategories.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </Box>
-
-                <Box>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Amount (₹) *</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    value={expenseFormData.amount}
-                    onChange={(e) => setExpenseFormData(prev => ({...prev, amount: e.target.value}))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="0.00"
-                    required
-                  />
-                </Box>
-
-                <Box>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
-                  <input
-                    type="date"
-                    value={expenseFormData.date}
-                    onChange={(e) => setExpenseFormData(prev => ({...prev, date: e.target.value}))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    required
-                  />
-                </Box>
-
-                <Box>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
-                  <select
-                    value={expenseFormData.paymentMethod}
-                    onChange={(e) => setExpenseFormData(prev => ({...prev, paymentMethod: e.target.value}))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  >
-                    <option value="cash">Cash</option>
-                    <option value="bank">Bank Transfer</option>
-                    <option value="card">Card</option>
-                    <option value="upi">UPI</option>
-                  </select>
-                </Box>
-
-                <Box>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Vendor/Supplier</label>
-                  <input
-                    type="text"
-                    value={expenseFormData.vendor}
-                    onChange={(e) => setExpenseFormData(prev => ({...prev, vendor: e.target.value}))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="Vendor name"
-                  />
-                </Box>
-
-                <Box>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                  <input
-                    type="text"
-                    value={expenseFormData.description}
-                    onChange={(e) => setExpenseFormData(prev => ({...prev, description: e.target.value}))}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="Brief description"
-                  />
-                </Box>
-
-                <Box className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                  <textarea
-                    value={expenseFormData.notes}
-                    onChange={(e) => setExpenseFormData(prev => ({...prev, notes: e.target.value}))}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="Additional notes..."
-                  />
-                </Box>
-
-                <Box className="md:col-span-2 flex space-x-4">
-                  <button
-                    onClick={handleExpenseSubmit}
-                    disabled={loading}
-                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 rounded-lg font-medium transition-colors disabled:opacity-50"
-                  >
-                    {loading ? 'Saving...' : (editingExpense ? 'Update Expense' : 'Save Expense')}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowExpenseForm(false);
-                      setEditingExpense(null);
-                    }}
-                    className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-                  >
-                    Cancel
-                  </button>
-                </Box>
-              </Box>
-            </Box>
-          )}
-
-          {/* Expenses List */}
-          <Box className="bg-white rounded-2xl shadow-xl p-6">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6">Expenses</h2>
-            {expenses.length === 0 ? (
-              <Box className="text-center py-12">
-                <Receipt className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">No expenses recorded</p>
-              </Box>
+          <Box className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+            {viewMode === 'daily' ? (
+              <>
+                <label className="text-sm font-medium text-gray-700">Date:</label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </>
             ) : (
-              <Box className="space-y-4">
-                {expenses.map((expense) => (
-                  <Box key={expense.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+              <>
+                <label className="text-sm font-medium text-gray-700">Month:</label>
+                <input
+                  type="month"
+                  value={selectedMonth}
+                  onChange={(e) => setSelectedMonth(e.target.value)}
+                  className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                />
+              </>
+            )}
+          </Box>
+        </Box>
+
+        {/* Overview Tab */}
+        {activeTab === 'overview' && (
+          <>
+            {/* Summary Cards */}
+            <Box className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6">
+              <Box className="bg-gradient-to-r from-green-400 to-green-600 rounded-xl p-4 sm:p-6 text-white">
+                <Box className="flex items-center justify-between">
+                  <Box>
+                    <p className="text-green-100 text-sm">Total Sales</p>
+                    <p className="text-2xl sm:text-3xl font-bold">₹{stats.totalSales.toFixed(2)}</p>
+                  </Box>
+                  <ShoppingCart className="w-6 h-6 sm:w-8 sm:h-8 text-green-200" />
+                </Box>
+              </Box>
+
+              <Box className="bg-gradient-to-r from-red-400 to-red-600 rounded-xl p-4 sm:p-6 text-white">
+                <Box className="flex items-center justify-between">
+                  <Box>
+                    <p className="text-red-100 text-sm">Total Expenses</p>
+                    <p className="text-2xl sm:text-3xl font-bold">₹{stats.totalExpenses.toFixed(2)}</p>
+                  </Box>
+                  <Receipt className="w-6 h-6 sm:w-8 sm:h-8 text-red-200" />
+                </Box>
+              </Box>
+
+              <Box className={`bg-gradient-to-r ${stats.netProfit >= 0 ? 'from-blue-400 to-blue-600' : 'from-orange-400 to-orange-600'} rounded-xl p-4 sm:p-6 text-white`}>
+                <Box className="flex items-center justify-between">
+                  <Box>
+                    <p className={`${stats.netProfit >= 0 ? 'text-blue-100' : 'text-orange-100'} text-sm`}>
+                      Net {stats.netProfit >= 0 ? 'Profit' : 'Loss'}
+                    </p>
+                    <p className="text-2xl sm:text-3xl font-bold">₹{Math.abs(stats.netProfit).toFixed(2)}</p>
+                  </Box>
+                  <TrendingUp className={`w-6 h-6 sm:w-8 sm:h-8 ${stats.netProfit >= 0 ? 'text-blue-200' : 'text-orange-200'}`} />
+                </Box>
+              </Box>
+
+              <Box className="bg-gradient-to-r from-purple-400 to-purple-600 rounded-xl p-4 sm:p-6 text-white">
+                <Box className="flex items-center justify-between">
+                  <Box>
+                    <p className="text-purple-100 text-sm">Total Transactions</p>
+                    <p className="text-2xl sm:text-3xl font-bold">{stats.expenseCount + stats.saleCount}</p>
+                  </Box>
+                  <BarChart3 className="w-6 h-6 sm:w-8 sm:h-8 text-purple-200" />
+                </Box>
+              </Box>
+            </Box>
+
+            {/* Additional Stats for Monthly View */}
+            {viewMode === 'monthly' && (
+              <Box className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
+                <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4">Monthly Insights</h3>
+                <Box className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                  <Box className="bg-gradient-to-r from-indigo-400 to-indigo-600 rounded-xl p-4 text-white">
                     <Box className="flex items-center justify-between">
-                      <Box className="flex-1">
-                        <Box className="flex items-center space-x-3 mb-2">
-                          <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium">
-                            {expense.category}
-                          </span>
-                          <span className="text-2xl font-bold text-gray-800">₹{expense.amount.toFixed(2)}</span>
-                        </Box>
-                        {expense.description && <p className="text-gray-700 mb-1">{expense.description}</p>}
-                        <Box className="flex items-center space-x-4 text-sm text-gray-500">
-                              <span className="flex items-center">
-                                <Calendar className="w-4 h-4 mr-1" />
-                                {expense.date}
-                              </span>
-                              <span className="flex items-center">
-                                <DollarSign className="w-4 h-4 mr-1" />
-                                {expense.paymentMethod}
-                              </span>
-                              {expense.vendor && (
-                                <span>Vendor: {expense.vendor}</span>
-                              )}
-                            </Box>
-                            {expense.notes && (
-                              <p className="text-gray-600 text-sm mt-2 italic">{expense.notes}</p>
+                      <Box>
+                        <p className="text-indigo-100 text-sm">Avg Daily Sales</p>
+                        <p className="text-lg sm:text-xl font-bold">₹{stats.averageDaily.sales.toFixed(2)}</p>
+                      </Box>
+                      <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-200" />
+                    </Box>
+                  </Box>
+
+                  <Box className="bg-gradient-to-r from-pink-400 to-pink-600 rounded-xl p-4 text-white">
+                    <Box className="flex items-center justify-between">
+                      <Box>
+                        <p className="text-pink-100 text-sm">Avg Daily Expenses</p>
+                        <p className="text-lg sm:text-xl font-bold">₹{stats.averageDaily.expenses.toFixed(2)}</p>
+                      </Box>
+                      <Calendar className="w-5 h-5 sm:w-6 sm:h-6 text-pink-200" />
+                    </Box>
+                  </Box>
+
+                  <Box className="bg-gradient-to-r from-teal-400 to-teal-600 rounded-xl p-4 text-white sm:col-span-2 lg:col-span-1">
+                    <Box className="flex items-center justify-between">
+                      <Box>
+                        <p className="text-teal-100 text-sm">Avg Daily Profit</p>
+                        <p className="text-lg sm:text-xl font-bold">₹{stats.averageDaily.profit.toFixed(2)}</p>
+                      </Box>
+                      <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-teal-200" />
+                    </Box>
+                  </Box>
+                </Box>
+
+                {/* Top Categories */}
+                <Box className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-6">
+                  <Box className="bg-gray-50 rounded-xl p-4">
+                    <h4 className="font-semibold text-gray-800 mb-2 text-sm sm:text-base">Top Expense Category</h4>
+                    <p className="text-base sm:text-lg font-bold text-red-600">{stats.topExpenseCategory.category || 'N/A'}</p>
+                    <p className="text-lg sm:text-xl font-bold">₹{stats.topExpenseCategory.amount.toFixed(2)}</p>
+                  </Box>
+                  <Box className="bg-gray-50 rounded-xl p-4">
+                    <h4 className="font-semibold text-gray-800 mb-2 text-sm sm:text-base">Top Sales Category</h4>
+                    <p className="text-base sm:text-lg font-bold text-green-600">{stats.topSaleCategory.category || 'N/A'}</p>
+                    <p className="text-lg sm:text-xl font-bold">₹{stats.topSaleCategory.amount.toFixed(2)}</p>
+                  </Box>
+                </Box>
+              </Box>
+            )}
+          </>
+        )}
+
+        {/* Expenses Tab */}
+        {activeTab === 'expenses' && (
+          <>
+            {/* Expense Form */}
+            {showExpenseForm && (
+              <Box className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">
+                  {editingExpense ? 'Edit Expense' : 'Add New Expense'}
+                </h2>
+
+                <Box className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                  <Box>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+                    <select
+                      value={expenseFormData.category}
+                      onChange={(e) => setExpenseFormData(prev => ({...prev, category: e.target.value}))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      {expenseCategories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </Box>
+
+                  <Box>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Amount (₹) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={expenseFormData.amount}
+                      onChange={(e) => setExpenseFormData(prev => ({...prev, amount: e.target.value}))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                      placeholder="0.00"
+                      required
+                    />
+                  </Box>
+
+                  <Box>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                    <input
+                      type="date"
+                      value={expenseFormData.date}
+                      onChange={(e) => setExpenseFormData(prev => ({...prev, date: e.target.value}))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                      required
+                    />
+                  </Box>
+
+                  <Box>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
+                    <select
+                      value={expenseFormData.paymentMethod}
+                      onChange={(e) => setExpenseFormData(prev => ({...prev, paymentMethod: e.target.value}))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                    >
+                      <option value="cash">Cash</option>
+                      <option value="bank">Bank Transfer</option>
+                      <option value="card">Card</option>
+                      <option value="upi">UPI</option>
+                    </select>
+                  </Box>
+
+                  <Box>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Vendor/Supplier</label>
+                    <input
+                      type="text"
+                      value={expenseFormData.vendor}
+                      onChange={(e) => setExpenseFormData(prev => ({...prev, vendor: e.target.value}))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                      placeholder="Vendor name"
+                    />
+                  </Box>
+
+                  <Box>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                    <input
+                      type="text"
+                      value={expenseFormData.description}
+                      onChange={(e) => setExpenseFormData(prev => ({...prev, description: e.target.value}))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                      placeholder="Brief description"
+                    />
+                  </Box>
+
+                  <Box className="lg:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                    <textarea
+                      value={expenseFormData.notes}
+                      onChange={(e) => setExpenseFormData(prev => ({...prev, notes: e.target.value}))}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                      placeholder="Additional notes..."
+                    />
+                  </Box>
+
+                  <Box className="lg:col-span-2 flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                    <button
+                      onClick={handleExpenseSubmit}
+                      disabled={loading}
+                      className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-6 rounded-lg font-medium transition-colors disabled:opacity-50 text-sm sm:text-base"
+                    >
+                      {loading ? 'Saving...' : (editingExpense ? 'Update Expense' : 'Save Expense')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowExpenseForm(false);
+                        setEditingExpense(null);
+                      }}
+                      className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors text-sm sm:text-base"
+                    >
+                      Cancel
+                    </button>
+                  </Box>
+                </Box>
+              </Box>
+            )}
+
+            {/* Expenses List */}
+            <Box className="bg-white rounded-2xl shadow-xl p-4 sm:p-6">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">Expenses</h2>
+              {expenses.length === 0 ? (
+                <Box className="text-center py-12">
+                  <Receipt className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500 text-base sm:text-lg">No expenses recorded</p>
+                </Box>
+              ) : (
+                <Box className="space-y-4">
+                  {expenses.map((expense) => (
+                    <Box key={expense.id} className="border border-gray-200 rounded-xl p-4 hover:shadow-md transition-shadow">
+                      <Box className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
+                        <Box className="flex-1">
+                          <Box className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-2">
+                            <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full text-sm font-medium w-fit">
+                              {expense.category}
+                            </span>
+                            <span className="text-xl sm:text-2xl font-bold text-gray-800">₹{expense.amount.toFixed(2)}</span>
+                          </Box>
+                          {expense.description && <p className="text-gray-700 mb-1 text-sm sm:text-base">{expense.description}</p>}
+                          <Box className="flex flex-col sm:flex-row sm:items-center space-y-1 sm:space-y-0 sm:space-x-4 text-sm text-gray-500">
+                            <span className="flex items-center">
+                              <Calendar className="w-4 h-4 mr-1" />
+                              {expense.date}
+                            </span>
+                            <span className="flex items-center">
+                              <DollarSign className="w-4 h-4 mr-1" />
+                              {expense.paymentMethod}
+                            </span>
+                            {expense.vendor && (
+                              <span>Vendor: {expense.vendor}</span>
                             )}
                           </Box>
-                          <Box className="flex items-center space-x-2">
-                            <button
-                              onClick={() => {
-                                setEditingExpense(expense);
-                                setExpenseFormData({
-                                  category: expense.category,
-                                  description: expense.description || '',
-                                  amount: expense.amount.toString(),
-                                  date: expense.date,
-                                  paymentMethod: expense.paymentMethod,
-                                  vendor: expense.vendor || '',
-                                  notes: expense.notes || ''
-                                });
-                                setShowExpenseForm(true);
-                              }}
-                              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                            >
-                              <Edit className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (window.confirm('Are you sure you want to delete this expense?')) {
-                                  // Handle delete - replace with actual API call
-                                  console.log('Delete expense:', expense.id);
-                                }
-                              }}
-                              className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </Box>
+                          {expense.notes && (
+                            <p className="text-gray-600 text-sm mt-2 italic">{expense.notes}</p>
+                          )}
+                        </Box>
+                        <Box className="flex items-center space-x-2 justify-end sm:justify-start">
+                          <button
+                            onClick={() => {
+                              setEditingExpense(expense);
+                              setExpenseFormData({
+                                category: expense.category,
+                                description: expense.description || '',
+                                amount: expense.amount.toString(),
+                                date: expense.date,
+                                paymentMethod: expense.paymentMethod,
+                                vendor: expense.vendor || '',
+                                notes: expense.notes || ''
+                              });
+                              setShowExpenseForm(true);
+                            }}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (window.confirm('Are you sure you want to delete this expense?')) {
+                                // Handle delete - replace with actual API call
+                                console.log('Delete expense:', expense.id);
+                              }
+                            }}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </Box>
                       </Box>
-                    ))}
+                    </Box>
+                  ))}
+                </Box>
+              )}
+            </Box>
+          </>
+        )}
+
+        {/* Sales Tab */}
+        {activeTab === 'sales' && (
+          <>
+            {/* Sale Form */}
+            {showSaleForm && (
+              <Box className="bg-white rounded-2xl shadow-xl p-4 sm:p-6 mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">
+                  {editingSale ? 'Edit Sale' : 'Add New Sale'}
+                </h2>
+
+                <Box className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                  <Box>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Item Name *</label>
+                    <input
+                      type="text"
+                      value={saleFormData.itemName}
+                      onChange={(e) => setSaleFormData(prev => ({...prev, itemName: e.target.value}))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                      placeholder="Item name"
+                      required
+                    />
                   </Box>
-                )}
-              </Box>
-            </>
-          )}
 
-          {/* Sales Tab */}
-          {activeTab === 'sales' && (
-            <>
-              {/* Sale Form */}
-              {showSaleForm && (
-                <Box className="bg-white rounded-2xl shadow-xl p-6 mb-6">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                    {editingSale ? 'Edit Sale' : 'Add New Sale'}
-                  </h2>
+                  <Box>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
+                    <select
+                      value={saleFormData.category}
+                      onChange={(e) => setSaleFormData(prev => ({...prev, category: e.target.value}))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                      required
+                    >
+                      <option value="">Select Category</option>
+                      {saleCategories.map(cat => (
+                        <option key={cat} value={cat}>{cat}</option>
+                      ))}
+                    </select>
+                  </Box>
 
-                  <Box className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Box>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Item Name *</label>
-                      <input
-                        type="text"
-                        value={saleFormData.itemName}
-                        onChange={(e) => setSaleFormData(prev => ({...prev, itemName: e.target.value}))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="Item name"
-                        required
-                      />
+                  <Box>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Quantity *</label>
+                    <input
+                      type="number"
+                      step="1"
+                      min="1"
+                      value={saleFormData.quantity}
+                      onChange={(e) => setSaleFormData(prev => ({...prev, quantity: e.target.value}))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                      placeholder="1"
+                      required
+                    />
+                  </Box>
+
+                  <Box>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Unit Price (₹) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={saleFormData.unitPrice}
+                      onChange={(e) => setSaleFormData(prev => ({...prev, unitPrice: e.target.value}))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                      placeholder="0.00"
+                      required
+                    />
+                  </Box>
+
+                  <Box>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
+                    <input
+                      type="date"
+                      value={saleFormData.date}
+                      onChange={(e) => setSaleFormData(prev => ({...prev, date: e.target.value}))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                      required
+                    />
+                  </Box>
+
+                  <Box>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
+                    <select
+                      value={saleFormData.paymentMethod}
+                      onChange={(e) => setSaleFormData(prev => ({...prev, paymentMethod: e.target.value}))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                    >
+                      <option value="cash">Cash</option>
+                      <option value="card">Card</option>
+                      <option value="upi">UPI</option>
+                      <option value="bank">Bank Transfer</option>
+                    </select>
+                  </Box>
+
+                  <Box>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
+                    <input
+                      type="text"
+                      value={saleFormData.customerName}
+                      onChange={(e) => setSaleFormData(prev => ({...prev, customerName: e.target.value}))}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                      placeholder="Customer name (optional)"
+                    />
+                  </Box>
+
+                  <Box>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Total Amount</label>
+                    <Box className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-base sm:text-lg font-semibold">
+                      ₹{(parseFloat(saleFormData.quantity || '0') * parseFloat(saleFormData.unitPrice || '0')).toFixed(2)}
                     </Box>
+                  </Box>
 
-                    <Box>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Category *</label>
-                      <select
-                        value={saleFormData.category}
-                        onChange={(e) => setSaleFormData(prev => ({...prev, category: e.target.value}))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        required
-                      >
-                        <option value="">Select Category</option>
-                        {saleCategories.map(cat => (
-                          <option key={cat} value={cat}>{cat}</option>
-                        ))}
-                      </select>
-                    </Box>
-
-                    <Box>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Quantity *</label>
-                      <input
-                        type="number"
-                        step="1"
-                        min="1"
-                        value={saleFormData.quantity}
-                        onChange={(e) => setSaleFormData(prev => ({...prev, quantity: e.target.value}))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="1"
-                        required
-                      />
-                    </Box>
-
-                    <Box>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Unit Price (₹) *</label>
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={saleFormData.unitPrice}
-                        onChange={(e) => setSaleFormData(prev => ({...prev, unitPrice: e.target.value}))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="0.00"
-                        required
-                      />
-                    </Box>
-
-                    <Box>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Date *</label>
-                      <input
-                        type="date"
-                        value={saleFormData.date}
-                        onChange={(e) => setSaleFormData(prev => ({...prev, date: e.target.value}))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        required
-                      />
-                    </Box>
-
-                    <Box>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
-                      <select
-                        value={saleFormData.paymentMethod}
-                        onChange={(e) => setSaleFormData(prev => ({...prev, paymentMethod: e.target.value}))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      >
-                        <option value="cash">Cash</option>
-                        <option value="card">Card</option>
-                        <option value="upi">UPI</option>
-                        <option value="bank">Bank Transfer</option>
-                      </select>
-                    </Box>
-
-                    <Box>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Customer Name</label>
-                      <input
-                        type="text"
-                        value={saleFormData.customerName}
-                        onChange={(e) => setSaleFormData(prev => ({...prev, customerName: e.target.value}))}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="Customer name (optional)"
-                      />
-                    </Box>
-
-                    <Box>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Total Amount</label>
-                      <Box className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-lg font-semibold">
-                        ₹{(parseFloat(saleFormData.quantity || '0') * parseFloat(saleFormData.unitPrice || '0')).toFixed(2)}
-                      </Box>
-                    </Box>
-
-                    <Box className="md:col-span-2">
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                      <textarea
-                        value={saleFormData.notes}
-                        onChange={(e) => setSaleFormData(prev => ({...prev, notes: e.target.value}))}
-                        rows={3}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                        placeholder="Additional notes..."
-                      />
-                    </Box>
-
+                  <Box className="lg:col-span-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
+                    <textarea
+                      value={saleFormData.notes}
+                      onChange={(e) => setSaleFormData(prev => ({...prev, notes: e.target.value}))}
+                      rows={3}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-sm sm:text-base"
+                      placeholder="Additional notes..."
+                    />
+                  </Box>
                     <Box className="md:col-span-2 flex space-x-4">
                       <button
                         onClick={handleSaleSubmit}
@@ -1095,7 +1094,6 @@ const FinancialTracker = () => {
               </Box>
             </Box>
           )}
-        </Box>
         </CenteredFormLayout>
       );
     };
