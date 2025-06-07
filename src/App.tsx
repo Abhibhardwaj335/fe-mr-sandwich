@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import MainLayout from "./components/layout/MainLayout";
-import CustomerForm from "./pages/CustomerForm";
 import SendWhatsApp from "./pages/SendWhatsApp";
 import ManageRewards from "./pages/ManageRewards";
 import CouponManager from "./pages/CouponManager";
@@ -33,12 +32,7 @@ const App: React.FC = () => {
         <Box sx={{ width: "100vw", minHeight: "100vh", boxSizing: "border-box" }}>
           <Routes>
             <Route path="/login" element={<Login onLogin={handleLogin} />} />
-            <Route path="/order" element={<OrderPage />} />
-            <Route path="/" element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <CustomerForm />
-              </ProtectedRoute>
-            } />
+            <Route path="/" element={<OrderPage />} />
             <Route path="/generate-qr" element={
               <ProtectedRoute allowedRoles={["admin"]}>
                 <GenerateQRCode />

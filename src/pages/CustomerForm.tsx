@@ -16,12 +16,7 @@ import { UserPlus } from "lucide-react";
 import { useNotify } from '../components/NotificationContext';
 
 const countryCodes = [
-  { code: "+91"},
-  { code: "+1"},
-  { code: "+44"},
-  { code: "+61"},
-  { code: "+81"},
-  { code: "+49"},
+  { code: "+91"}
 ];
 
 const CustomerForm: React.FC = () => {

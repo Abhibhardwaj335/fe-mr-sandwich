@@ -3,7 +3,6 @@ import { ReactNode } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import {
   Home,
-  UserPlus,
   Gift,
   MessageCircle,
   QrCode,
@@ -30,14 +29,13 @@ interface MainLayoutProps {
 }
 
 const navItems = [
-  { to: "/order", label: "Order", icon: <Home /> },
-  { to: "/generate-qr", label: "Generate QR", icon: <QrCode /> },
-  { to: "/", label: "Customer Form", icon: <UserPlus /> },
+  { to: "/", label: "Order", icon: <Home /> },
+  { to: "/customer-dashboard", label: "Customer Dashboard", icon: <LayoutDashboard /> },
+  { to: "/expense-dashboard", label: "Expense Dashboard", icon: <LayoutDashboard /> },
   { to: "/send-whatsapp", label: "Send WhatsApp", icon: <MessageCircle /> },
   { to: "/rewards", label: "Manage Rewards", icon: <Gift /> },
   { to: "/coupons", label: "Manage Coupons", icon: <Ticket /> },
-  { to: "/customer-dashboard", label: "Customer Dashboard", icon: <LayoutDashboard /> },
-  { to: "/expense-dashboard", label: "Expense Dashboard", icon: <LayoutDashboard /> },
+  { to: "/generate-qr", label: "Generate QR", icon: <QrCode /> },
   { to: "/login", label: "Login", icon: <LogIn /> },
 ];
 
@@ -58,7 +56,7 @@ export default function MainLayout({ children, isAuthenticated, setIsAuthenticat
 
   const filteredNavItems = navItems.filter((item) => {
     if (!isAuthenticated) {
-      return ["/order", "/login"].includes(item.to);
+      return ["/login"].includes(item.to);
     } else {
       return item.to !== "/login";
     }
