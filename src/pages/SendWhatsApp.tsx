@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import apiClient from '../apiClient';
 import {
   Box,
   TextField,
@@ -82,9 +82,7 @@ const SendWhatsApp: React.FC = () => {
 
     setSingleLoading(true);
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/customer?id=${customerId.trim()}`
-      );
+      const response = await apiClient.get(`/customer?id=${customerId.trim()}`);
       setCustomerData(response.data);
     } catch (error) {
       console.error("❌ Error fetching customer:", error);
@@ -98,9 +96,7 @@ const SendWhatsApp: React.FC = () => {
   const fetchAllCustomers = async () => {
     setAllLoading(true);
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/customers`
-      );
+      const response = await apiClient.get(`/customers`);
       setAllCustomers(response.data.customers || []);
     } catch (error) {
       console.error("❌ Error fetching customers:", error);
@@ -138,12 +134,12 @@ const SendWhatsApp: React.FC = () => {
       return;
     }
 
-    const url = `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/whatsapp?id=${customerId.trim()}`;
+    const url = `/whatsapp?id=${customerId.trim()}`;
     const payload = buildPayload(customerData.phoneNumber);
 
     setSingleLoading(true);
     try {
-      await axios.post(url, payload);
+      await apiClient.post(url, payload);
       notify("✅ WhatsApp message sent successfully!");
     } catch (error) {
       console.error("❌ Error sending WhatsApp:", error);
@@ -186,10 +182,10 @@ const SendWhatsApp: React.FC = () => {
       // Send messages sequentially to avoid rate limiting
       for (const customer of allCustomers) {
         try {
-          const url = `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/whatsapp?id=${customer.customerId}`;
+          const url = `/whatsapp?id=${customer.customerId}`;
           const payload = buildPayload(customer.phoneNumber);
 
-          await axios.post(url, payload);
+          await apiClient.post(url, payload);
           successCount++;
 
           // Small delay to avoid overwhelming the API

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import apiClient from '../apiClient';
 import {
   TextField,
   Button,
@@ -26,7 +26,7 @@ export default function CouponManager() {
 
   const fetchCoupons = async () => {
     try {
-      const res = await axios.get(import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL + "/coupons");
+      const res = await apiClient.get("/coupons");
       const data = Array.isArray(res.data) ? res.data : res.data.coupons || [];
       setCoupons(data);
     } catch (err) {
@@ -38,7 +38,7 @@ export default function CouponManager() {
 
   const createCoupon = async () => {
     try {
-      await axios.post(import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL + "/coupons", newCoupon);
+      await apiClient.post("/coupons", newCoupon);
       setNewCoupon({ title: "", code: "", description: "", validFrom: "", validTo: "", usageLimit: 0 });
       fetchCoupons();
       setViewMode("existing");
@@ -50,7 +50,7 @@ export default function CouponManager() {
 
   const deleteCoupon = async (code: string) => {
     try {
-      await axios.delete(import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL + `/coupons/?code=${code}`);
+      await apiClient.delete(`/coupons/?code=${code}`);
       fetchCoupons();
     } catch (err) {
       console.error("Failed to delete coupon", err);
@@ -59,7 +59,7 @@ export default function CouponManager() {
 
   const redeemCoupon = async (code: string) => {
     try {
-      await axios.put(import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL + `/coupons?code=${code}`);
+      await apiClient.put(`/coupons?code=${code}`);
       fetchCoupons();
           setSnackbar({ open: true, message: "Coupon redeemed successfully!", severity: "success" });
       } catch (err) {

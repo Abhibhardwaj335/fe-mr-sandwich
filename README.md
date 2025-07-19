@@ -52,3 +52,43 @@ export default tseslint.config({
   },
 })
 ```
+#To build an APK file
+
+# Initialize Capacitor
+npx cap init your-app-name com.yourcompany.yourapp
+
+# Add Android platform
+npm install @capacitor/android
+npx cap add android
+
+# Build your web app
+npm run build
+
+# Copy web assets to native project
+npx cap copy
+
+# Open Android Studio to build APK
+npx cap open android
+
+---------------------
+# How to Generate APK
+For Debug APK (testing):
+bash# In your project root
+cd android
+./gradlew assembleDebug
+For Release APK (production):
+bashcd android
+./gradlew assembleRelease
+----------------------
+# Update Capacitor to latest version
+npm install @capacitor/core@latest @capacitor/android@latest
+
+# Sync the project
+npx cap sync android
+
+----------------------
+# APK Location
+The APK file will be generated in one of these locations within your project:
+android/app/build/outputs/apk/debug/app-debug.apk
+Or if you built a release version:
+android/app/build/outputs/apk/release/app-release.apk

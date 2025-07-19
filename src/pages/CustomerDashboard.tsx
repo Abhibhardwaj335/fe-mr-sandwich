@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from "react";
-import axios from "axios";
 import {
   Box,
   TextField,
@@ -30,6 +29,7 @@ import { Search, FilterList, Clear, ExpandMore, ExpandLess } from "@mui/icons-ma
 import CenteredFormLayout from "../components/CenteredFormLayout";
 import { LayoutDashboard, UserPlus, User, Users } from "lucide-react";
 import { useNotify } from '../components/NotificationContext';
+import apiClient from '../apiClient';
 
 const countryCodes = [
   { code: "+91"}
@@ -167,10 +167,7 @@ const CustomerDashboard: React.FC = () => {
 
     setCreateLoading(true);
     try {
-      const response = await axios.post(
-        import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL + "/customer",
-        { name, phoneNumber: fullPhoneNumber, dob }
-      );
+      const response = await apiClient.post("/customer", { name, phoneNumber: fullPhoneNumber, dob });
       notify("✅ Customer data saved with customerId=" + response.data.customerId + "!");
       setName("");
       setLocalPhone("");
@@ -189,8 +186,8 @@ const CustomerDashboard: React.FC = () => {
     setSingleLoading(true);
 
     try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/dashboard/?id=${customerId}`
+      const res = await apiClient.get(
+        `/dashboard/?id=${customerId}`
       );
       setCustomerData(res.data.customer);
       setRewards(res.data.rewards);
@@ -208,9 +205,7 @@ const CustomerDashboard: React.FC = () => {
   const fetchAllCustomers = async () => {
     setAllLoading(true);
     try {
-      const res = await axios.get(
-        `${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/customers`
-      );
+      const res = await apiClient.get(`/customers`);
       setAllCustomers(res.data.customers || []);
       setCurrentPage(1); // Reset to first page after fetching
     } catch (err) {

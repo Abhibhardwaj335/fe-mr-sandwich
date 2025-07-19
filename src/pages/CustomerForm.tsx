@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import axios from "axios";
+import apiClient from '../apiClient';
 import {
   Box,
   TextField,
@@ -36,10 +36,7 @@ const CustomerForm: React.FC = () => {
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL + "/customer",
-        { name, phoneNumber: fullPhoneNumber, dob }
-      );
+      const response = await apiClient.post("/customer", { name, phoneNumber: fullPhoneNumber, dob });
       notify("✅ Customer data saved with customerId=" + response.data.customerId + "!");
       setName("");
       setLocalPhone("");

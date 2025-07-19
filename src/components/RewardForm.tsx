@@ -1,12 +1,10 @@
-// components/RewardForm.tsx
 import React, { useState } from "react";
 import { TextField, Button, MenuItem} from "@mui/material";
-import axios from "axios";
+import apiClient from '../apiClient';
 import { useNotify } from '../components/NotificationContext';
 
 const rewardTypes = ["Purchase", "Referral", "Loyalty"];
 const rewardPeriods = ["Weekly", "Monthly"];
-const API = import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL;
 
 const RewardForm: React.FC<{
   phoneNumber: string;
@@ -31,7 +29,7 @@ const RewardForm: React.FC<{
     }
 
     try {
-      await axios.post(`${API}/rewards`, {
+      await apiClient.post(`/rewards`, {
         phoneNumber,
         rewardPoints: parseInt(rewardPoints),
         rewardType,

@@ -16,12 +16,11 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 import SaveIcon from "@mui/icons-material/Save";
 import EditIcon from "@mui/icons-material/Edit";
-import axios from "axios";
+import apiClient from '../apiClient';
 import { useNotify } from '../components/NotificationContext';
 
 const rewardTypes = ["Purchase", "Referral", "Loyalty"];
 const rewardPeriods = ["Weekly", "Monthly"];
-const API = import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL;
 
 interface Reward {
   rewardId: string;
@@ -52,8 +51,7 @@ const RewardRow: React.FC<{
 
   const handleSave = async () => {
     try {
-      await axios.put(
-        `${API}/rewards`,
+      await apiClient.put(`/rewards`,
         {
           rewardPoints: editPoints,
           rewardType: editType,
@@ -76,7 +74,7 @@ const RewardRow: React.FC<{
 
   const handleDelete = async () => {
     try {
-      await axios.delete(`${API}/rewards`, {
+      await apiClient.delete(`/rewards`, {
         params: {
           id: phoneNumber,
           rewardType: reward.rewardType,
@@ -183,7 +181,7 @@ const SingleCustomerRewards: React.FC<{ phoneNumber: string }> = ({ phoneNumber 
 
   const fetchCustomerRewards = async () => {
     try {
-      const response = await axios.get(`${API}/rewards?id=${phoneNumber}`);
+      const response = await apiClient.get(`/rewards?id=${phoneNumber}`);
       const rewardsArray = response.data;
       const totalPoints = rewardsArray.reduce(
         (acc: number, r: any) => acc + r.points,

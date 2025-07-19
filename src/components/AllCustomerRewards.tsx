@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, Typography, Table, TableHead, TableRow, TableCell, TableBody, TableContainer, Paper } from "@mui/material";
-import axios from "axios";
+import apiClient from '../apiClient';
 import { useNotify } from '../components/NotificationContext';
-
-const API = import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL;
 
 interface Reward {
   rewardId: string;
@@ -25,7 +23,7 @@ const AllCustomerRewards: React.FC = () => {
 
   const fetchAllRewards = async () => {
     try {
-      const response = await axios.get(`${API}/rewards/all`);
+      const response = await apiClient.get(`/rewards/all`);
       const rawRewards = response.data.rewards;
       const summaryMap: Record<string, RewardSummary> = {};
 

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Plus, Receipt, Calendar, DollarSign, Edit, Trash2, TrendingUp, ShoppingCart, BarChart3 } from 'lucide-react';
 import CenteredFormLayout from "../components/CenteredFormLayout";
-import axios from "axios";
+import apiClient from '../apiClient';
+
 import dayjs from 'dayjs';
 import {
   Box
@@ -174,7 +175,7 @@ const FinancialTracker = () => {
          queryParams.append('endDate', endDate);
       }
 
-      const response = await axios.get(`${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/expense?${queryParams}`);
+      const response = await apiClient.get(`/expense?${queryParams}`);
 
       const data = response.data;
 
@@ -218,7 +219,7 @@ const FinancialTracker = () => {
       }
 
       // Make API call
-      const response = await axios.get(`${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/sale?${queryParams.toString()}`);
+      const response = await apiClient.get(`/sale?${queryParams.toString()}`);
 
       const result = await response.data;
 
@@ -330,7 +331,7 @@ const FinancialTracker = () => {
           vendor: expenseFormData.vendor,
           notes: expenseFormData.notes
         };
-        const response = await axios.put(`${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/expense`, updateData);
+        const response = await apiClient.put(`/expense`, updateData);
         const result = response.data;
         console.log('Expense updated:', result);
       } else {
@@ -345,8 +346,7 @@ const FinancialTracker = () => {
           notes: expenseFormData.notes
         };
 
-        const response = await axios.post(`${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/expense`,
-          createData);
+        const response = await apiClient.post(`/expense`, createData);
 
         const result = response.data;
         console.log('Expense created:', result);
@@ -418,13 +418,13 @@ const FinancialTracker = () => {
           originalDate: editingSale.date
         };
 
-        const response = await axios.put(`${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/sale`, updatePayload);
+        const response = await apiClient.put(`/sale`, updatePayload);
 
         const result = response.data;
         console.log('Sale updated successfully:', result);
       } else {
         // Create new sale
-        const response = await axios.post(`${import.meta.env.VITE_MR_SANDWICH_SERVICE_API_URL}/sale`, salePayload);
+        const response = await apiClient.post(`/sale`, salePayload);
 
         const result = response.data;
         console.log('Sale created successfully:', result);

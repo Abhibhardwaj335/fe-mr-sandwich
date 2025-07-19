@@ -21,6 +21,7 @@ import {
   ListItemText,
   Box,
 } from "@mui/material";
+import { signOut } from 'aws-amplify/auth';
 
 interface MainLayoutProps {
   children: ReactNode;
@@ -43,11 +44,32 @@ export default function MainLayout({ children, isAuthenticated, setIsAuthenticat
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const handleLogout = () => {
-    localStorage.removeItem("isAuthenticated");
-    localStorage.removeItem("userRole"); // Clear the role
-    setIsAuthenticated(false);
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      // Sign out from Cognito
+      await signOut();
+
+      // Clear localStorage
+      localStorage.removeItem("isAuthenticated");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("username");
+
+      // Update app state
+      setIsAuthenticated(false);
+      navigate("/login");
+    } catch (error) {
+      console.error('Logout error:', error);
+
+      // Even if Cognito logout fails, clear local state
+      localStorage.removeItem("isAuthenticated");
+      localStorage.removeItem("userRole");
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("username");
+
+      setIsAuthenticated(false);
+      navigate("/login");
+    }
   };
 
   const toggleDrawer = (open: boolean) => () => {
